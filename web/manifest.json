@@ -1,6 +1,6 @@
 {
-    "name": "app_oot",
-    "short_name": "app_oot",
+    "name": "Oot",
+    "short_name": "Oot",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

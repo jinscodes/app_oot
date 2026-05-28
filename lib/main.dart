@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import 'core/constants/app_colors.dart';
+import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -14,13 +19,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Oot',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      builder: (context, child) => MaterialApp(
+        title: 'Oot',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          scaffoldBackgroundColor: AppColors.background,
+          textTheme: GoogleFonts.interTextTheme(),
+        ),
+        home: Builder(
+          builder: (context) => AuthLandingScreen(
+            onCreateAccount: () => _openHome(context),
+            onSignIn: () => _openHome(context),
+          ),
+        ),
       ),
-      home: const HomeScreen(),
     );
+  }
+
+  void _openHome(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const HomeScreen()));
   }
 }
 

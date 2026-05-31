@@ -4,18 +4,19 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/buttons/circle_arrow_button.dart';
-import '../widgets/components/phone_number_input.dart';
+import '../widgets/components/verification_code_input.dart';
 
-class PhoneNumberScreen extends StatefulWidget {
-  const PhoneNumberScreen({super.key, this.onNext});
+class VerificationCodeScreen extends StatefulWidget {
+  const VerificationCodeScreen({super.key, this.onNext, this.onResend});
 
   final VoidCallback? onNext;
+  final VoidCallback? onResend;
 
   @override
-  State<PhoneNumberScreen> createState() => _PhoneNumberScreenState();
+  State<VerificationCodeScreen> createState() => _VerificationCodeScreenState();
 }
 
-class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
+class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   bool _isValid = false;
 
   @override
@@ -27,7 +28,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
           children: [
             SizedBox(height: 175.h),
             Text(
-              "What's your phone number?",
+              'Enter your\nverification code',
               textAlign: TextAlign.center,
               style: GoogleFonts.cormorant(
                 fontSize: 26.sp,
@@ -47,10 +48,27 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
               ),
             ),
             SizedBox(height: 28.h),
-            PhoneNumberInput(
+            VerificationCodeInput(
               onValidityChanged: (valid) {
                 if (valid != _isValid) setState(() => _isValid = valid);
               },
+            ),
+            SizedBox(height: 10.h),
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: widget.onResend,
+                child: Text(
+                  "Didn't get a code?",
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.underline,
+                    letterSpacing: 0.0.h,
+                  ),
+                ),
+              ),
             ),
             const Spacer(),
             CircleArrowButton(onPressed: _isValid ? widget.onNext : null),

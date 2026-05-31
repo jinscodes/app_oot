@@ -53,11 +53,13 @@ class PhoneNumberInput extends StatefulWidget {
     this.initialCountryCode = 'KR',
     this.controller,
     this.onCountryChanged,
+    this.onValidityChanged,
   });
 
   final String initialCountryCode;
   final TextEditingController? controller;
   final ValueChanged<Country>? onCountryChanged;
+  final ValueChanged<bool>? onValidityChanged;
 
   @override
   State<PhoneNumberInput> createState() => _PhoneNumberInputState();
@@ -81,12 +83,24 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
       _controller = TextEditingController();
       _ownsController = true;
     }
+    _controller.addListener(_emitValidity);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitValidity());
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_emitValidity);
     if (_ownsController) _controller.dispose();
     super.dispose();
+  }
+
+  bool _computeValidity() {
+    final digits = _controller.text.replaceAll(RegExp(r'\D'), '');
+    return digits.isNotEmpty;
+  }
+
+  void _emitValidity() {
+    widget.onValidityChanged?.call(_computeValidity());
   }
 
   void _openCountryPicker() {
@@ -115,6 +129,7 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
           selection: TextSelection.collapsed(offset: reformatted.length),
         );
         widget.onCountryChanged?.call(country);
+        _emitValidity();
       },
     );
   }

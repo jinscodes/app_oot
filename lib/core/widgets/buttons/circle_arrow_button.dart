@@ -10,16 +10,19 @@ class CircleArrowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    final color = enabled ? AppColors.accent : const Color(0xFFBDBDBD);
     return SizedBox(
       width: 48.w,
       height: 48.w,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.accent,
+          foregroundColor: color,
+          disabledForegroundColor: color,
           padding: EdgeInsets.zero,
           shape: const CircleBorder(),
-          side: BorderSide(color: AppColors.accent, width: 1.5.w),
+          side: BorderSide(color: color, width: 2.w),
         ),
         child: Icon(Icons.chevron_right, size: 22.sp),
       ),

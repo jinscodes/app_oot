@@ -23,7 +23,7 @@ class PhoneNumberScreen extends StatelessWidget {
               "What's your phone number?",
               textAlign: TextAlign.center,
               style: GoogleFonts.cormorant(
-                fontSize: 28.sp,
+                fontSize: 26.sp,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
                 letterSpacing: 0.0.h,
@@ -34,7 +34,7 @@ class PhoneNumberScreen extends StatelessWidget {
               "We only ask to verify it's you. It won't show up anywhere, including your profile.",
               textAlign: TextAlign.center,
               style: GoogleFonts.cormorant(
-                fontSize: 14.sp,
+                fontSize: 12.sp,
                 color: AppColors.textPrimary,
                 letterSpacing: 0.0.h,
               ),

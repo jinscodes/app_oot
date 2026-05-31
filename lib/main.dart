@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'core/constants/app_colors.dart';
+import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
@@ -51,8 +52,12 @@ class MyApp extends StatelessWidget {
   void _openPhoneNumber(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            PhoneNumberScreen(onNext: () => _openVerification(context)),
+        builder: (_) => PhoneNumberScreen(
+          onNext: () {
+            VerificationService.sendCode();
+            _openVerification(context);
+          },
+        ),
       ),
     );
   }

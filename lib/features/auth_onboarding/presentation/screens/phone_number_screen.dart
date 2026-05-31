@@ -1,3 +1,4 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +10,7 @@ import '../widgets/components/phone_number_input.dart';
 class PhoneNumberScreen extends StatefulWidget {
   const PhoneNumberScreen({super.key, this.onNext});
 
-  final VoidCallback? onNext;
+  final ValueChanged<String>? onNext;
 
   @override
   State<PhoneNumberScreen> createState() => _PhoneNumberScreenState();
@@ -17,6 +18,19 @@ class PhoneNumberScreen extends StatefulWidget {
 
 class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
   bool _isValid = false;
+  final TextEditingController _phoneController = TextEditingController();
+  Country _country = Country.parse('KR');
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _handleNext() {
+    final phone = '+${_country.phoneCode} ${_phoneController.text}';
+    widget.onNext?.call(phone);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +62,14 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
             ),
             SizedBox(height: 28.h),
             PhoneNumberInput(
+              controller: _phoneController,
               onValidityChanged: (valid) {
                 if (valid != _isValid) setState(() => _isValid = valid);
               },
+              onCountryChanged: (c) => _country = c,
             ),
             const Spacer(),
-            CircleArrowButton(onPressed: _isValid ? widget.onNext : null),
+            CircleArrowButton(onPressed: _isValid ? _handleNext : null),
             SizedBox(height: 32.h),
           ],
         ),

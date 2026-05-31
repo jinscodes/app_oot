@@ -53,8 +53,8 @@ class MyApp extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PhoneNumberScreen(
-          onNext: () {
-            VerificationService.sendCode();
+          onNext: (phone) {
+            VerificationService.sendCode(phone);
             _openVerification(context);
           },
         ),

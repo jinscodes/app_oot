@@ -6,13 +6,16 @@ class VerificationService {
   VerificationService._();
 
   static String? _pendingCode;
+  static String? _pendingPhone;
 
   static String? get pendingCode => _pendingCode;
+  static String? get pendingPhone => _pendingPhone;
 
-  static String sendCode() {
+  static String sendCode(String phone) {
     final code = (Random().nextInt(900000) + 100000).toString();
     _pendingCode = code;
-    debugPrint('[VerificationService] Mock code: $code');
+    _pendingPhone = phone;
+    debugPrint('[VerificationService] Mock code for $phone: $code');
     return code;
   }
 

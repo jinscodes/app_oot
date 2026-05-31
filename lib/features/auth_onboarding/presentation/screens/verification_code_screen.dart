@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,11 +9,12 @@ import '../../../../core/widgets/buttons/circle_arrow_button.dart';
 import '../../data/verification_service.dart';
 import '../widgets/components/verification_code_input.dart';
 
+const int _resendCountdownSeconds = 30;
+
 class VerificationCodeScreen extends StatefulWidget {
-  const VerificationCodeScreen({super.key, this.onNext, this.onResend});
+  const VerificationCodeScreen({super.key, this.onNext});
 
   final VoidCallback? onNext;
-  final VoidCallback? onResend;
 
   @override
   State<VerificationCodeScreen> createState() => _VerificationCodeScreenState();
@@ -20,29 +23,48 @@ class VerificationCodeScreen extends StatefulWidget {
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   bool _isValid = false;
   final TextEditingController _codeController = TextEditingController();
+  Timer? _timer;
+  int _secondsRemaining = _resendCountdownSeconds;
 
   @override
   void initState() {
     super.initState();
-    final code = VerificationService.pendingCode;
-    if (code != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Dev mock code: $code'),
-            duration: const Duration(seconds: 10),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      });
-    }
+    _startCountdown();
+    _showDevCodeSnackBar(VerificationService.pendingCode);
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _codeController.dispose();
     super.dispose();
+  }
+
+  void _startCountdown() {
+    _timer?.cancel();
+    setState(() => _secondsRemaining = _resendCountdownSeconds);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      setState(() => _secondsRemaining--);
+      if (_secondsRemaining <= 0) t.cancel();
+    });
+  }
+
+  void _showDevCodeSnackBar(String? code) {
+    if (code == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Dev mock code: $code'),
+          duration: const Duration(seconds: 10),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    });
   }
 
   void _handleNext() {
@@ -60,8 +82,31 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     }
   }
 
+  void _handleResend() {
+    final phone = VerificationService.pendingPhone;
+    if (phone == null) return;
+    final code = VerificationService.sendCode(phone);
+    _startCountdown();
+    _showDevCodeSnackBar(code);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final phone = VerificationService.pendingPhone ?? '';
+    final infoStyle = TextStyle(
+      color: AppColors.textPrimary,
+      fontSize: 12.sp,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.0.h,
+    );
+    final linkStyle = TextStyle(
+      color: AppColors.textPrimary,
+      fontSize: 12.sp,
+      fontWeight: FontWeight.w700,
+      decoration: TextDecoration.underline,
+      letterSpacing: 0.0.h,
+    );
+
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -98,18 +143,22 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
             SizedBox(height: 10.h),
             Align(
               alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: widget.onResend,
-                child: Text(
-                  "Didn't get a code?",
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w700,
-                    decoration: TextDecoration.underline,
-                    letterSpacing: 0.0.h,
-                  ),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('Code sent to $phone', style: infoStyle),
+                  SizedBox(height: 4.h),
+                  if (_secondsRemaining > 0)
+                    Text(
+                      'For resending: ${_secondsRemaining}s',
+                      style: infoStyle,
+                    )
+                  else
+                    GestureDetector(
+                      onTap: _handleResend,
+                      child: Text('Resend code', style: linkStyle),
+                    ),
+                ],
               ),
             ),
             const Spacer(),

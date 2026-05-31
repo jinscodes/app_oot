@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_outline_button.dart';
@@ -24,10 +25,21 @@ class AuthLandingScreen extends StatelessWidget {
           child: Column(
             children: [
               Expanded(
-                child: Center(
-                  child: Image.asset(
-                    'assets/images/app_logo.png',
-                    width: 130.w,
+                child: Align(
+                  alignment: const Alignment(0, -0.3),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('assets/images/logo.png', width: 80.w),
+                      Text(
+                        'Only One Touch',
+                        style: GoogleFonts.cormorantGaramond(
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'core/constants/app_colors.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
+import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         ),
         home: Builder(
           builder: (context) => AuthLandingScreen(
-            onCreateAccount: () => _openHome(context),
+            onCreateAccount: () => _openPhoneNumber(context),
             onSignIn: () => _openHome(context),
           ),
         ),
@@ -44,6 +45,12 @@ class MyApp extends StatelessWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const HomeScreen()));
+  }
+
+  void _openPhoneNumber(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const PhoneNumberScreen()),
+    );
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_colors.dart';
 import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
+import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 import 'features/auth_onboarding/presentation/screens/profile_onboarding_intro_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
@@ -79,11 +80,20 @@ class MyApp extends StatelessWidget {
   }
 
   void _openProfileOnboarding(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (innerContext) => ProfileOnboardingIntroScreen(
+          onNext: () => _openName(innerContext),
+        ),
+      ),
+      (route) => false,
+    );
+  }
+
+  void _openName(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ProfileOnboardingIntroScreen(
-          onNext: () => _openHome(context),
-        ),
+        builder: (_) => NameScreen(onNext: () => _openHome(context)),
       ),
     );
   }

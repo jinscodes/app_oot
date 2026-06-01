@@ -7,14 +7,24 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/buttons/circle_arrow_button.dart';
-import '../../data/verification_service.dart';
 import '../widgets/components/verification_code_input.dart';
 
 const int _resendCountdownSeconds = 30;
 
 class VerificationCodeScreen extends StatefulWidget {
-  const VerificationCodeScreen({super.key, this.onNext});
+  const VerificationCodeScreen({
+    super.key,
+    required this.sentTo,
+    required this.initialCode,
+    required this.onVerify,
+    required this.onResend,
+    this.onNext,
+  });
 
+  final String sentTo;
+  final String? initialCode;
+  final bool Function(String code) onVerify;
+  final String? Function() onResend;
   final VoidCallback? onNext;
 
   @override
@@ -32,7 +42,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   void initState() {
     super.initState();
     _startCountdown();
-    _showDevCodeSnackBar(VerificationService.pendingCode);
+    _showDevCodeSnackBar(widget.initialCode);
     _codeController.addListener(_clearErrorOnEdit);
   }
 
@@ -76,7 +86,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   }
 
   void _handleNext() {
-    final ok = VerificationService.verify(_codeController.text);
+    final ok = widget.onVerify(_codeController.text);
     if (!mounted) return;
     if (ok) {
       widget.onNext?.call();
@@ -87,16 +97,14 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   }
 
   void _handleResend() {
-    final phone = VerificationService.pendingPhone;
-    if (phone == null) return;
-    final code = VerificationService.sendCode(phone);
+    final code = widget.onResend();
+    if (code == null) return;
     _startCountdown();
     _showDevCodeSnackBar(code);
   }
 
   @override
   Widget build(BuildContext context) {
-    final phone = VerificationService.pendingPhone ?? '';
     final infoStyle = TextStyle(
       color: AppColors.textPrimary,
       fontSize: 12.sp,
@@ -151,7 +159,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('Code sent to $phone', style: infoStyle),
+                  Text('Code sent to ${widget.sentTo}', style: infoStyle),
                   SizedBox(height: 4.h),
                   if (_secondsRemaining > 0)
                     Text(

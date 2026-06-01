@@ -4,8 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'core/constants/app_colors.dart';
+import 'features/auth_onboarding/data/email_verification_service.dart';
 import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
+import 'features/auth_onboarding/presentation/screens/email_screen.dart';
 import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 import 'features/auth_onboarding/presentation/screens/profile_onboarding_intro_screen.dart';
@@ -73,6 +75,14 @@ class MyApp extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => VerificationCodeScreen(
+          sentTo: VerificationService.pendingPhone ?? '',
+          initialCode: VerificationService.pendingCode,
+          onVerify: VerificationService.verify,
+          onResend: () {
+            final phone = VerificationService.pendingPhone;
+            if (phone == null) return null;
+            return VerificationService.sendCode(phone);
+          },
           onNext: () => _openProfileOnboarding(context),
         ),
       ),
@@ -93,7 +103,38 @@ class MyApp extends StatelessWidget {
   void _openName(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => NameScreen(onNext: () => _openHome(context)),
+        builder: (_) => NameScreen(onNext: () => _openEmail(context)),
+      ),
+    );
+  }
+
+  void _openEmail(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EmailScreen(
+          onNext: (email) {
+            EmailVerificationService.sendCode(email);
+            _openEmailVerification(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openEmailVerification(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => VerificationCodeScreen(
+          sentTo: EmailVerificationService.pendingEmail ?? '',
+          initialCode: EmailVerificationService.pendingCode,
+          onVerify: EmailVerificationService.verify,
+          onResend: () {
+            final email = EmailVerificationService.pendingEmail;
+            if (email == null) return null;
+            return EmailVerificationService.sendCode(email);
+          },
+          onNext: () => _openHome(context),
+        ),
       ),
     );
   }

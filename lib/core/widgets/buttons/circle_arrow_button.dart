@@ -4,14 +4,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../constants/app_colors.dart';
 
 class CircleArrowButton extends StatelessWidget {
-  const CircleArrowButton({super.key, required this.onPressed});
+  const CircleArrowButton({
+    super.key,
+    required this.onPressed,
+    this.color = AppColors.accent,
+  });
 
   final VoidCallback? onPressed;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
-    final color = enabled ? AppColors.accent : const Color(0xFFBDBDBD);
+    final color = enabled ? this.color : const Color(0xFFBDBDBD);
     return SizedBox(
       width: 48.w,
       height: 48.w,

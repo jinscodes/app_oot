@@ -182,6 +182,8 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
             child: TextField(
               controller: _controller,
               keyboardType: TextInputType.phone,
+              autofocus: true,
+              autofillHints: const [AutofillHints.telephoneNumber],
               inputFormatters: [_PhonePatternFormatter(_pattern)],
               style: valueStyle,
               decoration: InputDecoration(

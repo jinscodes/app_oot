@@ -7,6 +7,7 @@ import 'core/constants/app_colors.dart';
 import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
+import 'features/auth_onboarding/presentation/screens/profile_onboarding_intro_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 
 void main() async {
@@ -32,6 +33,11 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           scaffoldBackgroundColor: AppColors.background,
           textTheme: GoogleFonts.interTextTheme(),
+        ),
+        builder: (context, child) => GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: child,
         ),
         home: Builder(
           builder: (context) => AuthLandingScreen(
@@ -65,8 +71,19 @@ class MyApp extends StatelessWidget {
   void _openVerification(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            VerificationCodeScreen(onNext: () => _openHome(context)),
+        builder: (_) => VerificationCodeScreen(
+          onNext: () => _openProfileOnboarding(context),
+        ),
+      ),
+    );
+  }
+
+  void _openProfileOnboarding(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProfileOnboardingIntroScreen(
+          onNext: () => _openHome(context),
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,6 +23,7 @@ class VerificationCodeScreen extends StatefulWidget {
 
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   bool _isValid = false;
+  bool _hasError = false;
   final TextEditingController _codeController = TextEditingController();
   Timer? _timer;
   int _secondsRemaining = _resendCountdownSeconds;
@@ -31,13 +33,19 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     super.initState();
     _startCountdown();
     _showDevCodeSnackBar(VerificationService.pendingCode);
+    _codeController.addListener(_clearErrorOnEdit);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _codeController.removeListener(_clearErrorOnEdit);
     _codeController.dispose();
     super.dispose();
+  }
+
+  void _clearErrorOnEdit() {
+    if (_hasError) setState(() => _hasError = false);
   }
 
   void _startCountdown() {
@@ -73,12 +81,8 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     if (ok) {
       widget.onNext?.call();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid code, please try again'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      setState(() => _hasError = true);
+      HapticFeedback.heavyImpact();
     }
   }
 
@@ -136,6 +140,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
             SizedBox(height: 28.h),
             VerificationCodeInput(
               controller: _codeController,
+              hasError: _hasError,
               onValidityChanged: (valid) {
                 if (valid != _isValid) setState(() => _isValid = valid);
               },

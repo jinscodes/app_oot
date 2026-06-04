@@ -10,7 +10,7 @@ import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/email_screen.dart';
 import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
-import 'features/auth_onboarding/presentation/screens/profile_onboarding_intro_screen.dart';
+import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 
 void main() async {
@@ -92,7 +92,9 @@ class MyApp extends StatelessWidget {
   void _openProfileOnboarding(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (innerContext) => ProfileOnboardingIntroScreen(
+        builder: (innerContext) => OnboardingPromptScreen(
+          imageAsset: 'assets/images/profile_onboarding.png',
+          title: 'Tell me about\nyourself',
           onNext: () => _openName(innerContext),
         ),
       ),
@@ -133,9 +135,22 @@ class MyApp extends StatelessWidget {
             if (email == null) return null;
             return EmailVerificationService.sendCode(email);
           },
-          onNext: () => _openHome(context),
+          onNext: () => _openMeetPrompt(context),
         ),
       ),
+    );
+  }
+
+  void _openMeetPrompt(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (innerContext) => OnboardingPromptScreen(
+          imageAsset: 'assets/images/profile_onboarding2.png',
+          title: 'Where should I meet\nsomeone special?',
+          onNext: () => _openHome(innerContext),
+        ),
+      ),
+      (route) => false,
     );
   }
 }

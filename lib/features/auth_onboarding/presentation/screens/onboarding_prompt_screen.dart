@@ -4,9 +4,16 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/widgets/buttons/circle_arrow_button.dart';
 
-class ProfileOnboardingIntroScreen extends StatelessWidget {
-  const ProfileOnboardingIntroScreen({super.key, this.onNext});
+class OnboardingPromptScreen extends StatelessWidget {
+  const OnboardingPromptScreen({
+    super.key,
+    required this.imageAsset,
+    required this.title,
+    this.onNext,
+  });
 
+  final String imageAsset;
+  final String title;
   final VoidCallback? onNext;
 
   @override
@@ -14,12 +21,7 @@ class ProfileOnboardingIntroScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/profile_onboarding.png',
-              fit: BoxFit.cover,
-            ),
-          ),
+          Positioned.fill(child: Image.asset(imageAsset, fit: BoxFit.cover)),
           const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -43,7 +45,7 @@ class ProfileOnboardingIntroScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Ready to find your\nspecial someone?',
+                      title,
                       style: GoogleFonts.cormorant(
                         fontSize: 24.sp,
                         fontWeight: FontWeight.w500,

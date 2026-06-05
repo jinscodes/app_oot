@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../constants/app_colors.dart';
@@ -8,18 +9,24 @@ class RoundedTextInput extends StatelessWidget {
     super.key,
     required this.hintText,
     this.controller,
+    this.focusNode,
     this.autofocus = false,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
     this.autofillHints,
+    this.textAlign = TextAlign.start,
+    this.inputFormatters,
   });
 
   final String hintText;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final bool autofocus;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final Iterable<String>? autofillHints;
+  final TextAlign textAlign;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -37,10 +44,13 @@ class RoundedTextInput extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         autofocus: autofocus,
         keyboardType: keyboardType,
         textCapitalization: textCapitalization,
         autofillHints: autofillHints,
+        textAlign: textAlign,
+        inputFormatters: inputFormatters,
         style: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 14.sp,

@@ -7,6 +7,7 @@ import 'core/constants/app_colors.dart';
 import 'features/auth_onboarding/data/email_verification_service.dart';
 import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
+import 'features/auth_onboarding/presentation/screens/birthday_screen.dart';
 import 'features/auth_onboarding/presentation/screens/email_screen.dart';
 import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
@@ -83,22 +84,32 @@ class MyApp extends StatelessWidget {
             if (phone == null) return null;
             return VerificationService.sendCode(phone);
           },
-          onNext: () => _openProfileOnboarding(context),
+          onNext: () => _openBirthday(context),
         ),
       ),
     );
   }
 
-  void _openProfileOnboarding(BuildContext context) {
+  void _openBirthday(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (innerContext) => OnboardingPromptScreen(
-          imageAsset: 'assets/images/profile_onboarding.png',
-          title: 'Tell me about\nyourself',
-          onNext: () => _openName(innerContext),
+        builder: (innerContext) => BirthdayScreen(
+          onNext: () => _openProfileOnboarding(innerContext),
         ),
       ),
       (route) => false,
+    );
+  }
+
+  void _openProfileOnboarding(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => OnboardingPromptScreen(
+          imageAsset: 'assets/images/profile_onboarding.png',
+          title: 'Tell me about\nyourself',
+          onNext: () => _openName(context),
+        ),
+      ),
     );
   }
 

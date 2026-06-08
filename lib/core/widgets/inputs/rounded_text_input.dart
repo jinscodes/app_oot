@@ -16,6 +16,8 @@ class RoundedTextInput extends StatelessWidget {
     this.autofillHints,
     this.textAlign = TextAlign.start,
     this.inputFormatters,
+    this.textInputAction,
+    this.onSubmitted,
   });
 
   final String hintText;
@@ -27,6 +29,8 @@ class RoundedTextInput extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final TextAlign textAlign;
   final List<TextInputFormatter>? inputFormatters;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +55,8 @@ class RoundedTextInput extends StatelessWidget {
         autofillHints: autofillHints,
         textAlign: textAlign,
         inputFormatters: inputFormatters,
+        textInputAction: textInputAction,
+        onSubmitted: onSubmitted,
         style: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 14.sp,

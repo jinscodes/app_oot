@@ -9,9 +9,11 @@ import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/birthday_screen.dart';
 import 'features/auth_onboarding/presentation/screens/email_screen.dart';
+import 'features/auth_onboarding/presentation/screens/gender_screen.dart';
+import 'features/auth_onboarding/presentation/screens/location_screen.dart';
 import 'features/auth_onboarding/presentation/screens/name_screen.dart';
-import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
+import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 
 void main() async {
@@ -84,32 +86,22 @@ class MyApp extends StatelessWidget {
             if (phone == null) return null;
             return VerificationService.sendCode(phone);
           },
-          onNext: () => _openBirthday(context),
+          onNext: () => _openProfileOnboarding(context),
         ),
       ),
-    );
-  }
-
-  void _openBirthday(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (innerContext) => BirthdayScreen(
-          onNext: () => _openProfileOnboarding(innerContext),
-        ),
-      ),
-      (route) => false,
     );
   }
 
   void _openProfileOnboarding(BuildContext context) {
-    Navigator.of(context).push(
+    Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (_) => OnboardingPromptScreen(
+        builder: (innerContext) => OnboardingPromptScreen(
           imageAsset: 'assets/images/profile_onboarding.png',
           title: 'Tell me about\nyourself',
-          onNext: () => _openName(context),
+          onNext: () => _openName(innerContext),
         ),
       ),
+      (route) => false,
     );
   }
 
@@ -146,22 +138,47 @@ class MyApp extends StatelessWidget {
             if (email == null) return null;
             return EmailVerificationService.sendCode(email);
           },
-          onNext: () => _openMeetPrompt(context),
+          onNext: () => _openBirthday(context),
         ),
       ),
     );
   }
 
-  void _openMeetPrompt(BuildContext context) {
+  void _openBirthday(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (innerContext) => OnboardingPromptScreen(
-          imageAsset: 'assets/images/profile_onboarding2.png',
-          title: 'Where should I meet\nsomeone special?',
-          onNext: () => _openHome(innerContext),
-        ),
+        builder: (innerContext) =>
+            BirthdayScreen(onNext: () => _openMeetPrompt(innerContext)),
       ),
       (route) => false,
+    );
+  }
+
+  void _openMeetPrompt(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => OnboardingPromptScreen(
+          imageAsset: 'assets/images/profile_onboarding2.png',
+          title: 'Where should I meet\nsomeone special?',
+          onNext: () => _openLocation(context),
+        ),
+      ),
+    );
+  }
+
+  void _openLocation(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LocationScreen(onNext: () => _openGender(context)),
+      ),
+    );
+  }
+
+  void _openGender(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => GenderScreen(onNext: () => _openHome(context)),
+      ),
     );
   }
 }

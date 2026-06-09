@@ -27,7 +27,7 @@ class _GenderScreenState extends State<GenderScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         child: Column(
           children: [
-            SizedBox(height: 100.h),
+            SizedBox(height: 175.h),
             Text(
               'Which gender best\ndescribes you?',
               textAlign: TextAlign.center,

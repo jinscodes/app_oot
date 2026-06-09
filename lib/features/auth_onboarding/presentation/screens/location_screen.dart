@@ -22,6 +22,8 @@ const int _minQueryLength = 3;
 const int _maxSuggestions = 5;
 const String _userAgent = 'com.example.app_oot/1.0';
 const Distance _distance = Distance();
+const double _minZoom = 2;
+const double _maxZoom = 18;
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key, this.onNext});
@@ -152,6 +154,12 @@ class _LocationScreenState extends State<LocationScreen> {
     });
   }
 
+  void _adjustZoom(double delta) {
+    final camera = _mapController.camera;
+    final newZoom = (camera.zoom + delta).clamp(_minZoom, _maxZoom);
+    _mapController.move(camera.center, newZoom);
+  }
+
   void _handleMapTap(TapPosition position, LatLng point) {
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
@@ -208,7 +216,7 @@ class _LocationScreenState extends State<LocationScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         child: Column(
           children: [
-            SizedBox(height: 100.h),
+            SizedBox(height: 175.h),
             Text(
               'Where are you from?',
               textAlign: TextAlign.center,
@@ -241,35 +249,59 @@ class _LocationScreenState extends State<LocationScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15.r),
-                child: FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: _markerPosition,
-                    initialZoom: _initialZoom,
-                    onTap: _handleMapTap,
-                  ),
+                child: Stack(
                   children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: _userAgent,
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _markerPosition,
+                        initialZoom: _initialZoom,
+                        minZoom: _minZoom,
+                        maxZoom: _maxZoom,
+                        onTap: _handleMapTap,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: _userAgent,
+                        ),
+                        if (_hasSelection)
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: _markerPosition,
+                                width: 40.w,
+                                height: 40.w,
+                                alignment: Alignment.topCenter,
+                                child: Icon(
+                                  Icons.location_pin,
+                                  color: AppColors.accent,
+                                  size: 40.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                    if (_hasSelection)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: _markerPosition,
-                            width: 40.w,
-                            height: 40.w,
-                            alignment: Alignment.topCenter,
-                            child: Icon(
-                              Icons.location_pin,
-                              color: AppColors.accent,
-                              size: 40.sp,
-                            ),
+                    Positioned(
+                      right: 8.w,
+                      bottom: 8.h,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _ZoomButton(
+                            icon: Icons.add,
+                            onTap: () => _adjustZoom(1),
+                          ),
+                          SizedBox(height: 6.h),
+                          _ZoomButton(
+                            icon: Icons.remove,
+                            onTap: () => _adjustZoom(-1),
                           ),
                         ],
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -374,6 +406,31 @@ class _SuggestionsDropdown extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _ZoomButton extends StatelessWidget {
+  const _ZoomButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 32.w,
+          height: 32.w,
+          child: Icon(icon, size: 18.sp, color: AppColors.textPrimary),
+        ),
       ),
     );
   }

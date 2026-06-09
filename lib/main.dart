@@ -10,6 +10,7 @@ import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/birthday_screen.dart';
 import 'features/auth_onboarding/presentation/screens/email_screen.dart';
 import 'features/auth_onboarding/presentation/screens/gender_screen.dart';
+import 'features/auth_onboarding/presentation/screens/height_screen.dart';
 import 'features/auth_onboarding/presentation/screens/location_screen.dart';
 import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
@@ -177,7 +178,15 @@ class MyApp extends StatelessWidget {
   void _openGender(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => GenderScreen(onNext: () => _openHome(context)),
+        builder: (_) => GenderScreen(onNext: () => _openHeight(context)),
+      ),
+    );
+  }
+
+  void _openHeight(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HeightScreen(onNext: () => _openHome(context)),
       ),
     );
   }

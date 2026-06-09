@@ -109,7 +109,7 @@ class MyApp extends StatelessWidget {
   void _openName(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => NameScreen(onNext: () => _openEmail(context)),
+        builder: (_) => NameScreen(onNext: () => _openBirthday(context)),
       ),
     );
   }
@@ -139,31 +139,30 @@ class MyApp extends StatelessWidget {
             if (email == null) return null;
             return EmailVerificationService.sendCode(email);
           },
-          onNext: () => _openBirthday(context),
+          onNext: () => _openMeetPrompt(context),
         ),
       ),
     );
   }
 
   void _openBirthday(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
+    Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (innerContext) =>
-            BirthdayScreen(onNext: () => _openMeetPrompt(innerContext)),
+        builder: (_) => BirthdayScreen(onNext: () => _openEmail(context)),
       ),
-      (route) => false,
     );
   }
 
   void _openMeetPrompt(BuildContext context) {
-    Navigator.of(context).push(
+    Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (_) => OnboardingPromptScreen(
+        builder: (innerContext) => OnboardingPromptScreen(
           imageAsset: 'assets/images/profile_onboarding2.png',
           title: 'Where should I meet\nsomeone special?',
-          onNext: () => _openLocation(context),
+          onNext: () => _openLocation(innerContext),
         ),
       ),
+      (route) => false,
     );
   }
 

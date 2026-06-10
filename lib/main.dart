@@ -87,7 +87,7 @@ class MyApp extends StatelessWidget {
             if (phone == null) return null;
             return VerificationService.sendCode(phone);
           },
-          onNext: () => _openProfileOnboarding(context),
+          onNext: () => _openEmail(context),
         ),
       ),
     );
@@ -139,7 +139,7 @@ class MyApp extends StatelessWidget {
             if (email == null) return null;
             return EmailVerificationService.sendCode(email);
           },
-          onNext: () => _openMeetPrompt(context),
+          onNext: () => _openProfileOnboarding(context),
         ),
       ),
     );
@@ -148,7 +148,7 @@ class MyApp extends StatelessWidget {
   void _openBirthday(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BirthdayScreen(onNext: () => _openEmail(context)),
+        builder: (_) => BirthdayScreen(onNext: () => _openGender(context)),
       ),
     );
   }
@@ -169,7 +169,7 @@ class MyApp extends StatelessWidget {
   void _openLocation(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => LocationScreen(onNext: () => _openGender(context)),
+        builder: (_) => LocationScreen(onNext: () => _openHome(context)),
       ),
     );
   }
@@ -185,7 +185,7 @@ class MyApp extends StatelessWidget {
   void _openHeight(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => HeightScreen(onNext: () => _openHome(context)),
+        builder: (_) => HeightScreen(onNext: () => _openMeetPrompt(context)),
       ),
     );
   }

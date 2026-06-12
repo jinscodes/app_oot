@@ -80,9 +80,20 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
           content: Text('Dev mock code: $code'),
           duration: const Duration(seconds: 10),
           behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Fill',
+            onPressed: () => _fillCode(code),
+          ),
         ),
       );
     });
+  }
+
+  void _fillCode(String code) {
+    _codeController.value = TextEditingValue(
+      text: code,
+      selection: TextSelection.collapsed(offset: code.length),
+    );
   }
 
   void _handleNext() {

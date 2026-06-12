@@ -8,6 +8,7 @@ import 'features/auth_onboarding/data/email_verification_service.dart';
 import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/birthday_screen.dart';
+import 'features/auth_onboarding/presentation/screens/children_screen.dart';
 import 'features/auth_onboarding/presentation/screens/connection_type_screen.dart';
 import 'features/auth_onboarding/presentation/screens/education_level_screen.dart';
 import 'features/auth_onboarding/presentation/screens/education_screen.dart';
@@ -225,7 +226,15 @@ class MyApp extends StatelessWidget {
   void _openWork(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => WorkScreen(onNext: () => _openHome(context)),
+        builder: (_) => WorkScreen(onNext: () => _openChildren(context)),
+      ),
+    );
+  }
+
+  void _openChildren(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChildrenScreen(onNext: () => _openHome(context)),
       ),
     );
   }

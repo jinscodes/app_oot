@@ -236,7 +236,7 @@ class _ProfileVisibilityToggle extends StatelessWidget {
           ),
           SizedBox(width: 8.w),
           Text(
-            'Visible on profile',
+            visible ? 'Hidden on profile' : 'Visible on profile',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 12.sp,

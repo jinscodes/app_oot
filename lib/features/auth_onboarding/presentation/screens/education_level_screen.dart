@@ -42,7 +42,7 @@ class EducationLevelScreen extends StatefulWidget {
 
 class _EducationLevelScreenState extends State<EducationLevelScreen> {
   EducationLevel? _selected;
-  bool _hiddenOnProfile = false;
+  bool _visibleOnProfile = false;
 
   void _select(EducationLevel level) {
     setState(() => _selected = level);
@@ -104,10 +104,10 @@ class _EducationLevelScreenState extends State<EducationLevelScreen> {
                           SizedBox(height: 10.h),
                         ],
                         SizedBox(height: 4.h),
-                        _HiddenOnProfileToggle(
-                          hidden: _hiddenOnProfile,
+                        _VisibilityToggle(
+                          visible: _visibleOnProfile,
                           onTap: () => setState(
-                            () => _hiddenOnProfile = !_hiddenOnProfile,
+                            () => _visibleOnProfile = !_visibleOnProfile,
                           ),
                         ),
                       ],
@@ -147,9 +147,9 @@ class _FieldCard extends StatelessWidget {
   }
 }
 
-class _HiddenOnProfileToggle extends StatelessWidget {
-  const _HiddenOnProfileToggle({required this.hidden, required this.onTap});
-  final bool hidden;
+class _VisibilityToggle extends StatelessWidget {
+  const _VisibilityToggle({required this.visible, required this.onTap});
+  final bool visible;
   final VoidCallback onTap;
 
   @override
@@ -166,17 +166,17 @@ class _HiddenOnProfileToggle extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(4.r),
               border: Border.all(
-                color: hidden ? AppColors.accent : const Color(0xFFD0D0D0),
+                color: visible ? AppColors.accent : const Color(0xFFD0D0D0),
                 width: 1.w,
               ),
             ),
-            child: hidden
+            child: visible
                 ? Icon(Icons.check, size: 14.sp, color: AppColors.textPrimary)
                 : null,
           ),
           SizedBox(width: 8.w),
           Text(
-            'Hidden on profile',
+            visible ? 'Hidden on profile' : 'Visible on profile',
             style: GoogleFonts.cormorant(
               color: AppColors.textPrimary,
               fontSize: 13.sp,

@@ -5,22 +5,22 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/buttons/circle_arrow_button.dart';
 
-enum ChildrenStatus { none, hasChildren, preferNotToSay }
+enum WantChildrenStatus { dontWant, want, preferNotToSay }
 
-class ChildrenScreen extends StatefulWidget {
-  const ChildrenScreen({super.key, this.onNext});
+class WantChildrenScreen extends StatefulWidget {
+  const WantChildrenScreen({super.key, this.onNext});
 
   final VoidCallback? onNext;
 
   @override
-  State<ChildrenScreen> createState() => _ChildrenScreenState();
+  State<WantChildrenScreen> createState() => _WantChildrenScreenState();
 }
 
-class _ChildrenScreenState extends State<ChildrenScreen> {
-  ChildrenStatus? _selected;
+class _WantChildrenScreenState extends State<WantChildrenScreen> {
+  WantChildrenStatus? _selected;
   bool _visibleOnProfile = false;
 
-  void _select(ChildrenStatus status) {
+  void _select(WantChildrenStatus status) {
     setState(() => _selected = status);
   }
 
@@ -33,7 +33,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
           children: [
             SizedBox(height: 175.h),
             Text(
-              'Do you have children?',
+              'Do you want children?',
               textAlign: TextAlign.center,
               style: GoogleFonts.cormorant(
                 fontSize: 26.sp,
@@ -44,21 +44,22 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
             ),
             SizedBox(height: 32.h),
             _ChildrenOptionTile(
-              label: "I don't have children",
-              selected: _selected == ChildrenStatus.none,
-              onTap: () => _select(ChildrenStatus.none),
+              label: "I don't want children",
+              selected: _selected == WantChildrenStatus.dontWant,
+              onTap: () => _select(WantChildrenStatus.dontWant),
             ),
             SizedBox(height: 12.h),
             _ChildrenOptionTile(
-              label: 'I have children',
-              selected: _selected == ChildrenStatus.hasChildren,
-              onTap: () => _select(ChildrenStatus.hasChildren),
+              label: 'I want children',
+              selected: _selected == WantChildrenStatus.want,
+              onTap: () => _select(WantChildrenStatus.want),
             ),
             SizedBox(height: 12.h),
             _ChildrenOptionTile(
               label: 'Prefer not to say',
-              selected: _selected == ChildrenStatus.preferNotToSay,
-              onTap: () => _select(ChildrenStatus.preferNotToSay),
+              subtitle: 'This will limit who sees your profile',
+              selected: _selected == WantChildrenStatus.preferNotToSay,
+              onTap: () => _select(WantChildrenStatus.preferNotToSay),
             ),
             SizedBox(height: 16.h),
             Align(
@@ -86,9 +87,11 @@ class _ChildrenOptionTile extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.subtitle,
   });
 
   final String label;
+  final String? subtitle;
   final bool selected;
   final VoidCallback onTap;
 
@@ -108,14 +111,31 @@ class _ChildrenOptionTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: borderColor, width: borderWidth),
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14.sp,
-            letterSpacing: 0.0.h,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14.sp,
+                letterSpacing: 0.0.h,
+              ),
+            ),
+            if (subtitle != null) ...[
+              SizedBox(height: 4.h),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: const Color(0xFFBDBDBD),
+                  fontSize: 12.sp,
+                  letterSpacing: 0.0.h,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

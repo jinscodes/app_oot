@@ -19,6 +19,7 @@ import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
+import 'features/auth_onboarding/presentation/screens/work_screen.dart';
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -216,7 +217,15 @@ class MyApp extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) =>
-            EducationLevelScreen(onNext: () => _openHome(context)),
+            EducationLevelScreen(onNext: () => _openWork(context)),
+      ),
+    );
+  }
+
+  void _openWork(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WorkScreen(onNext: () => _openHome(context)),
       ),
     );
   }

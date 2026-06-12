@@ -20,6 +20,7 @@ import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
+import 'features/auth_onboarding/presentation/screens/want_children_screen.dart';
 import 'features/auth_onboarding/presentation/screens/work_screen.dart';
 
 void main() async {
@@ -234,8 +235,31 @@ class MyApp extends StatelessWidget {
   void _openChildren(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ChildrenScreen(onNext: () => _openHome(context)),
+        builder: (_) =>
+            ChildrenScreen(onNext: () => _openWantChildren(context)),
       ),
+    );
+  }
+
+  void _openWantChildren(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            WantChildrenScreen(onNext: () => _openValuesPrompt(context)),
+      ),
+    );
+  }
+
+  void _openValuesPrompt(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (innerContext) => OnboardingPromptScreen(
+          imageAsset: 'assets/images/profile_onboarding3.png',
+          title: 'A little about\nyour values',
+          onNext: () => _openHome(innerContext),
+        ),
+      ),
+      (route) => false,
     );
   }
 }

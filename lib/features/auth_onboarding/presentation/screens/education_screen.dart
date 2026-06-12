@@ -107,6 +107,7 @@ class _EducationScreenState extends State<EducationScreen> {
                               child: RoundedTextInput(
                                 controller: _schoolController,
                                 hintText: 'School',
+                                autofocus: true,
                                 textCapitalization:
                                     TextCapitalization.words,
                               ),
@@ -224,7 +225,10 @@ class _ProfileVisibilityToggle extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(4.r),
-              border: Border.all(color: const Color(0xFFD0D0D0), width: 1.w),
+              border: Border.all(
+                color: visible ? AppColors.accent : const Color(0xFFD0D0D0),
+                width: 1.w,
+              ),
             ),
             child: visible
                 ? Icon(Icons.check, size: 14.sp, color: AppColors.textPrimary)

@@ -193,7 +193,7 @@ class _VisibilityToggle extends StatelessWidget {
           ),
           SizedBox(width: 8.w),
           Text(
-            'Visible on profile',
+            visible ? 'Hidden on profile' : 'Visible on profile',
             style: GoogleFonts.cormorant(
               color: AppColors.textPrimary,
               fontSize: 13.sp,

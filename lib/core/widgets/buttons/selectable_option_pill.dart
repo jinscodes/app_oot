@@ -9,11 +9,13 @@ class SelectableOptionPill extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.height,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +29,7 @@ class SelectableOptionPill extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        height: 48.h,
+        height: height ?? 48.h,
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,

@@ -8,6 +8,9 @@ import 'features/auth_onboarding/data/email_verification_service.dart';
 import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/birthday_screen.dart';
+import 'features/auth_onboarding/presentation/screens/connection_type_screen.dart';
+import 'features/auth_onboarding/presentation/screens/education_level_screen.dart';
+import 'features/auth_onboarding/presentation/screens/education_screen.dart';
 import 'features/auth_onboarding/presentation/screens/email_screen.dart';
 import 'features/auth_onboarding/presentation/screens/gender_screen.dart';
 import 'features/auth_onboarding/presentation/screens/height_screen.dart';
@@ -169,7 +172,8 @@ class MyApp extends StatelessWidget {
   void _openLocation(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => LocationScreen(onNext: () => _openHome(context)),
+        builder: (_) =>
+            LocationScreen(onNext: () => _openConnectionType(context)),
       ),
     );
   }
@@ -186,6 +190,33 @@ class MyApp extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => HeightScreen(onNext: () => _openMeetPrompt(context)),
+      ),
+    );
+  }
+
+  void _openConnectionType(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            ConnectionTypeScreen(onNext: () => _openEducation(context)),
+      ),
+    );
+  }
+
+  void _openEducation(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            EducationScreen(onNext: () => _openEducationLevel(context)),
+      ),
+    );
+  }
+
+  void _openEducationLevel(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            EducationLevelScreen(onNext: () => _openHome(context)),
       ),
     );
   }

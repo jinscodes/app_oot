@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -19,16 +18,14 @@ import 'features/auth_onboarding/presentation/screens/location_screen.dart';
 import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
+import 'features/auth_onboarding/presentation/screens/splash_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 import 'features/auth_onboarding/presentation/screens/want_children_screen.dart';
 import 'features/auth_onboarding/presentation/screens/work_screen.dart';
 
-void main() async {
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
-  await Future.delayed(const Duration(milliseconds: 1500));
-  FlutterNativeSplash.remove();
 }
 
 class MyApp extends StatelessWidget {
@@ -53,10 +50,19 @@ class MyApp extends StatelessWidget {
           child: child,
         ),
         home: Builder(
-          builder: (context) => AuthLandingScreen(
-            onCreateAccount: () => _openPhoneNumber(context),
-            onSignIn: () => _openHome(context),
-          ),
+          builder: (context) =>
+              SplashScreen(onComplete: () => _openLanding(context)),
+        ),
+      ),
+    );
+  }
+
+  void _openLanding(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (innerContext) => AuthLandingScreen(
+          onCreateAccount: () => _openPhoneNumber(innerContext),
+          onSignIn: () => _openHome(innerContext),
         ),
       ),
     );

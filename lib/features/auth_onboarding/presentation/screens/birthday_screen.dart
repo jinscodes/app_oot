@@ -77,10 +77,42 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
     }
   }
 
+  int _daysInMonth(int month, int? year) {
+    switch (month) {
+      case 1:
+      case 3:
+      case 5:
+      case 7:
+      case 8:
+      case 10:
+      case 12:
+        return 31;
+      case 4:
+      case 6:
+      case 9:
+      case 11:
+        return 30;
+      case 2:
+        final isLeap = year != null &&
+            year % 4 == 0 &&
+            (year % 100 != 0 || year % 400 == 0);
+        return isLeap ? 29 : 28;
+      default:
+        return 0;
+    }
+  }
+
   void _recheckValidity() {
-    final valid = _yearController.text.trim().isNotEmpty &&
-        _monthController.text.trim().isNotEmpty &&
-        _dayController.text.trim().isNotEmpty;
+    final y = _year;
+    final m = _month;
+    final d = _day;
+    final valid = y != null &&
+        m != null &&
+        d != null &&
+        m >= 1 &&
+        m <= 12 &&
+        d >= 1 &&
+        d <= _daysInMonth(m, y);
     if (valid != _isValid) setState(() => _isValid = valid);
     if (_showConfirmation) {
       setState(() => _showConfirmation = false);

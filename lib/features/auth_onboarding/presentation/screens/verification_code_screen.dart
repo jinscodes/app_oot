@@ -131,41 +131,75 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     );
 
     return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: Column(
-          children: [
-            SizedBox(height: 175.h),
-            Text(
-              'Enter your\nverification code',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 26.sp,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
+      body: Stack(
+        children: [
+          Positioned(
+            top: 120.h,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: SizedBox(
+                width: 310.w,
+                height: 80.h,
+                child: Stack(
+                  children: [
+                    Image.asset(
+                      'assets/images/bubble2.png',
+                      width: 310.w,
+                      height: 80.h,
+                      fit: BoxFit.fill,
+                    ),
+                    Positioned(
+                      top: 22.h,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Text(
+                          'Enter your verification code',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.cormorant(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.textPrimary,
+                            letterSpacing: 0.0.h,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            SizedBox(height: 12.h),
-            Text(
-              "We only ask to verify it's you. It won't show up anywhere, including your profile.",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 12.sp,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
+          ),
+          Positioned(
+            top: 210.h,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Image.asset(
+                'assets/images/talking_logo.png',
+                width: 80.w,
+                height: 80.w,
               ),
             ),
-            SizedBox(height: 28.h),
-            VerificationCodeInput(
+          ),
+          Positioned(
+            top: 330.h,
+            left: 20.w,
+            right: 20.w,
+            child: VerificationCodeInput(
               controller: _codeController,
               hasError: _hasError,
               onValidityChanged: (valid) {
                 if (valid != _isValid) setState(() => _isValid = valid);
               },
             ),
-            SizedBox(height: 10.h),
-            Align(
+          ),
+          Positioned(
+            top: 390.h,
+            left: 20.w,
+            right: 20.w,
+            child: Align(
               alignment: Alignment.centerRight,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -185,11 +219,18 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                 ],
               ),
             ),
-            const Spacer(),
-            CircleArrowButton(onPressed: _isValid ? _handleNext : null),
-            SizedBox(height: 32.h),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: 32.h,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: CircleArrowButton(
+                onPressed: _isValid ? _handleNext : null,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

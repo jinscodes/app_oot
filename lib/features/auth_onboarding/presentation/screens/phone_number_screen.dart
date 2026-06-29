@@ -62,7 +62,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                           "What's your phone number?",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.cormorant(
-                            fontSize: 14.sp,
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.w400,
                             color: AppColors.textPrimary,
                             letterSpacing: 0.0.h,

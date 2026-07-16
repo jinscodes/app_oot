@@ -4,23 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/buttons/circle_arrow_button.dart';
-import '../../../../core/widgets/inputs/rounded_text_input.dart';
-
-const List<String> _monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
+import '../widgets/oot_design_system.dart';
 
 class BirthdayScreen extends StatefulWidget {
   const BirthdayScreen({super.key, this.onNext});
@@ -32,295 +16,156 @@ class BirthdayScreen extends StatefulWidget {
 }
 
 class _BirthdayScreenState extends State<BirthdayScreen> {
-  final TextEditingController _yearController = TextEditingController();
-  final TextEditingController _monthController = TextEditingController();
-  final TextEditingController _dayController = TextEditingController();
-  final FocusNode _yearFocusNode = FocusNode();
-  final FocusNode _monthFocusNode = FocusNode();
-  final FocusNode _dayFocusNode = FocusNode();
-  bool _isValid = false;
-  bool _showConfirmation = false;
+  final TextEditingController _year = TextEditingController(text: '1997');
+  final TextEditingController _month = TextEditingController(text: '02');
+  final TextEditingController _day = TextEditingController(text: '15');
 
-  @override
-  void initState() {
-    super.initState();
-    _yearController.addListener(_onYearChanged);
-    _monthController.addListener(_onMonthChanged);
-    _dayController.addListener(_recheckValidity);
+  bool get _valid {
+    final date = DateTime.tryParse(
+      '${_year.text.padLeft(4, '0')}-${_month.text.padLeft(2, '0')}-${_day.text.padLeft(2, '0')}',
+    );
+    return date != null && date.isBefore(DateTime.now());
+  }
+
+  int get _age {
+    final birth = DateTime.tryParse(
+      '${_year.text}-${_month.text}-${_day.text}',
+    );
+    if (birth == null) return 0;
+    final now = DateTime.now();
+    var age = now.year - birth.year;
+    if (now.month < birth.month ||
+        (now.month == birth.month && now.day < birth.day)) {
+      age--;
+    }
+    return age;
   }
 
   @override
   void dispose() {
-    _yearController.removeListener(_onYearChanged);
-    _monthController.removeListener(_onMonthChanged);
-    _dayController.removeListener(_recheckValidity);
-    _yearController.dispose();
-    _monthController.dispose();
-    _dayController.dispose();
-    _yearFocusNode.dispose();
-    _monthFocusNode.dispose();
-    _dayFocusNode.dispose();
+    _year.dispose();
+    _month.dispose();
+    _day.dispose();
     super.dispose();
-  }
-
-  void _onYearChanged() {
-    _recheckValidity();
-    if (_yearController.text.length == 4 && _yearFocusNode.hasFocus) {
-      _monthFocusNode.requestFocus();
-    }
-  }
-
-  void _onMonthChanged() {
-    _recheckValidity();
-    if (_monthController.text.length == 2 && _monthFocusNode.hasFocus) {
-      _dayFocusNode.requestFocus();
-    }
-  }
-
-  int _daysInMonth(int month, int? year) {
-    switch (month) {
-      case 1:
-      case 3:
-      case 5:
-      case 7:
-      case 8:
-      case 10:
-      case 12:
-        return 31;
-      case 4:
-      case 6:
-      case 9:
-      case 11:
-        return 30;
-      case 2:
-        final isLeap = year != null &&
-            year % 4 == 0 &&
-            (year % 100 != 0 || year % 400 == 0);
-        return isLeap ? 29 : 28;
-      default:
-        return 0;
-    }
-  }
-
-  void _recheckValidity() {
-    final y = _year;
-    final m = _month;
-    final d = _day;
-    final valid = y != null &&
-        m != null &&
-        d != null &&
-        m >= 1 &&
-        m <= 12 &&
-        d >= 1 &&
-        d <= _daysInMonth(m, y);
-    if (valid != _isValid) setState(() => _isValid = valid);
-    if (_showConfirmation) {
-      setState(() => _showConfirmation = false);
-    }
-  }
-
-  int? get _year => int.tryParse(_yearController.text);
-  int? get _month => int.tryParse(_monthController.text);
-  int? get _day => int.tryParse(_dayController.text);
-
-  int? get _age {
-    final y = _year;
-    final m = _month;
-    final d = _day;
-    if (y == null || m == null || d == null) return null;
-    final now = DateTime.now();
-    var age = now.year - y;
-    if (now.month < m || (now.month == m && now.day < d)) age--;
-    return age;
-  }
-
-  String get _formattedDate {
-    final y = _year;
-    final m = _month;
-    final d = _day;
-    if (y == null || m == null || d == null) return '';
-    if (m < 1 || m > 12) return '';
-    return '${_monthNames[m - 1]} $d, $y';
-  }
-
-  void _handleNext() {
-    if (!_isValid) return;
-    if (!_showConfirmation) {
-      FocusManager.instance.primaryFocus?.unfocus();
-      setState(() => _showConfirmation = true);
-    } else {
-      widget.onNext?.call();
-    }
-  }
-
-  void _handleEdit() {
-    setState(() => _showConfirmation = false);
-    _yearController.selection = TextSelection.fromPosition(
-      TextPosition(offset: _yearController.text.length),
-    );
-    _yearFocusNode.requestFocus();
-  }
-
-  void _handleConfirm() {
-    widget.onNext?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final showCard = _showConfirmation && _age != null && !keyboardOpen;
-    return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: Column(
-          children: [
-            SizedBox(height: 175.h),
-            Text(
-              'When is your\nbirthday?',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 26.sp,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
+    return OotOnboardingScaffold(
+      progressLabel: 'Profile basics',
+      currentStep: 2,
+      totalSteps: 4,
+      buttonLabel: 'Continue',
+      onContinue: _valid ? widget.onNext : null,
+      body: Column(
+        children: [
+          const OotHero(
+            eyebrow: 'Your birthday',
+            title: 'When were you born?',
+            description: 'We’ll show only your age — never your full birthday.',
+          ),
+          SizedBox(height: 34.h),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: OotFieldLabel('Date of birth'),
+          ),
+          SizedBox(height: 10.h),
+          Row(
+            children: [
+              Expanded(
+                flex: 148,
+                child: _DateField(
+                  controller: _year,
+                  length: 4,
+                  focused: true,
+                  onChanged: () => setState(() {}),
+                ),
               ),
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              "We'll only show your age on your profile.",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 12.sp,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
+              SizedBox(width: 12.w),
+              Expanded(
+                flex: 110,
+                child: _DateField(
+                  controller: _month,
+                  length: 2,
+                  onChanged: () => setState(() {}),
+                ),
               ),
+              SizedBox(width: 12.w),
+              Expanded(
+                flex: 110,
+                child: _DateField(
+                  controller: _day,
+                  length: 2,
+                  onChanged: () => setState(() {}),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          Container(
+            height: 88.h,
+            padding: EdgeInsets.all(14.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(color: AppColors.border),
             ),
-            SizedBox(height: 28.h),
-            Row(
+            child: Row(
               children: [
                 Expanded(
-                  child: RoundedTextInput(
-                    controller: _yearController,
-                    focusNode: _yearFocusNode,
-                    hintText: 'Year',
-                    autofocus: true,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(4),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Looks right?',
+                        style: GoogleFonts.inter(
+                          color: AppColors.textPrimary,
+                          fontSize: 13.sp,
+                          height: 18 / 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'February 15, 1997',
+                        style: GoogleFonts.inter(
+                          color: AppColors.textSecondary,
+                          fontSize: 12.sp,
+                          height: 16 / 12,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: RoundedTextInput(
-                    controller: _monthController,
-                    focusNode: _monthFocusNode,
-                    hintText: 'Month',
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(2),
-                    ],
+                Container(
+                  height: 32.h,
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceMuted,
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: RoundedTextInput(
-                    controller: _dayController,
-                    focusNode: _dayFocusNode,
-                    hintText: 'Day',
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(2),
-                    ],
+                  child: Text(
+                    'Age $_age',
+                    style: GoogleFonts.inter(
+                      color: AppColors.accent,
+                      fontSize: 11.sp,
+                      height: 15 / 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
-            const Spacer(),
-            if (showCard) ...[
-              _ConfirmationCard(
-                age: _age!,
-                dateText: _formattedDate,
-                onEdit: _handleEdit,
-                onConfirm: _handleConfirm,
-              ),
-              SizedBox(height: 16.h),
-            ],
-            CircleArrowButton(onPressed: _isValid ? _handleNext : null),
-            SizedBox(height: 32.h),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ConfirmationCard extends StatelessWidget {
-  const _ConfirmationCard({
-    required this.age,
-    required this.dateText,
-    required this.onEdit,
-    required this.onConfirm,
-  });
-
-  final int age;
-  final String dateText;
-  final VoidCallback onEdit;
-  final VoidCallback onConfirm;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: const Color(0xFFE5E5E5), width: 1.w),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "You're $age",
-            style: GoogleFonts.cormorant(
-              fontSize: 22.sp,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-              letterSpacing: 0.0.h,
-            ),
           ),
-          SizedBox(height: 8.h),
-          Text(
-            'Born $dateText',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 12.sp,
-              letterSpacing: 0.0.h,
+          SizedBox(height: 10.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Only your age appears on your profile.',
+              style: ootHelperStyle(),
             ),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Make sure your age is correct before moving on. It keeps OOT real for everyone.',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 11.sp,
-              height: 1.4,
-              letterSpacing: 0.0.h,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Row(
-            children: [
-              _EditButton(onPressed: onEdit),
-              SizedBox(width: 10.w),
-              _ConfirmButton(onPressed: onConfirm),
-            ],
           ),
         ],
       ),
@@ -328,58 +173,51 @@ class _ConfirmationCard extends StatelessWidget {
   }
 }
 
-class _EditButton extends StatelessWidget {
-  const _EditButton({required this.onPressed});
-  final VoidCallback onPressed;
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.controller,
+    required this.length,
+    required this.onChanged,
+    this.focused = false,
+  });
+
+  final TextEditingController controller;
+  final int length;
+  final VoidCallback onChanged;
+  final bool focused;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.textPrimary,
-        backgroundColor: Colors.white,
-        side: BorderSide(color: const Color(0xFFE5E5E5), width: 1.w),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.r),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
-        textStyle: TextStyle(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.0.h,
-        ),
-        minimumSize: Size.zero,
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      textAlign: TextAlign.center,
+      maxLength: length,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      onChanged: (_) => onChanged(),
+      style: GoogleFonts.inter(
+        color: AppColors.textPrimary,
+        fontSize: 15.sp,
+        height: 20 / 15,
+        fontWeight: FontWeight.w500,
       ),
-      child: const Text('Edit'),
-    );
-  }
-}
-
-class _ConfirmButton extends StatelessWidget {
-  const _ConfirmButton({required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: const Color(0xFF1A1A1A),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.r),
+      decoration: InputDecoration(
+        counterText: '',
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: EdgeInsets.symmetric(vertical: 18.h),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(
+            color: focused ? AppColors.primary : AppColors.borderStrong,
+            width: focused ? 1.5.w : 1.w,
+          ),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
-        textStyle: TextStyle(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.0.h,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5.w),
         ),
-        elevation: 0,
-        minimumSize: Size.zero,
       ),
-      child: const Text('Confirm'),
     );
   }
 }

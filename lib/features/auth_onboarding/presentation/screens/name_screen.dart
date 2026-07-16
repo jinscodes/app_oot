@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/buttons/circle_arrow_button.dart';
-import '../../../../core/widgets/inputs/rounded_text_input.dart';
+import '../widgets/oot_design_system.dart';
 
 class NameScreen extends StatefulWidget {
   const NameScreen({super.key, this.onNext});
@@ -16,77 +13,62 @@ class NameScreen extends StatefulWidget {
 }
 
 class _NameScreenState extends State<NameScreen> {
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  bool _isValid = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _firstNameController.addListener(_onFirstNameChanged);
-  }
+  final TextEditingController _first = TextEditingController();
+  final TextEditingController _last = TextEditingController();
+  bool _valid = false;
 
   @override
   void dispose() {
-    _firstNameController.removeListener(_onFirstNameChanged);
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _first.dispose();
+    _last.dispose();
     super.dispose();
-  }
-
-  void _onFirstNameChanged() {
-    final valid = _firstNameController.text.trim().isNotEmpty;
-    if (valid != _isValid) setState(() => _isValid = valid);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: Column(
-          children: [
-            SizedBox(height: 175.h),
-            Text(
-              "What's your Name",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 26.sp,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
-              ),
+    return OotOnboardingScaffold(
+      progressLabel: 'Profile basics',
+      currentStep: 1,
+      totalSteps: 4,
+      buttonLabel: 'Continue',
+      onContinue: _valid ? widget.onNext : null,
+      body: Column(
+        children: [
+          const OotHero(
+            eyebrow: 'Let’s get acquainted',
+            title: 'What should we call you?',
+            description: 'Use the name you’d like your matches to see.',
+          ),
+          SizedBox(height: 34.h),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: OotFieldLabel('First name'),
+          ),
+          SizedBox(height: 8.h),
+          OotTextField(
+            controller: _first,
+            hintText: 'Jiyoon',
+            autofocus: true,
+            focused: true,
+            onChanged: (value) =>
+                setState(() => _valid = value.trim().isNotEmpty),
+          ),
+          SizedBox(height: 10.h),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: OotFieldLabel('Last name · Optional'),
+          ),
+          SizedBox(height: 8.h),
+          OotTextField(controller: _last, hintText: 'Kim'),
+          SizedBox(height: 10.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Use your preferred name. You can update it later.',
+              style: ootHelperStyle(),
             ),
-            SizedBox(height: 12.h),
-            Text(
-              "We doesn’t verify your name or run background checks.We count on daters to be real with each other.",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 12.sp,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
-              ),
-            ),
-            SizedBox(height: 28.h),
-            RoundedTextInput(
-              controller: _firstNameController,
-              hintText: 'First Name',
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              autofillHints: const [AutofillHints.givenName],
-            ),
-            SizedBox(height: 12.h),
-            RoundedTextInput(
-              controller: _lastNameController,
-              hintText: 'Last Name (Optional)',
-              textCapitalization: TextCapitalization.words,
-              autofillHints: const [AutofillHints.familyName],
-            ),
-            const Spacer(),
-            CircleArrowButton(onPressed: _isValid ? widget.onNext : null),
-            SizedBox(height: 32.h),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

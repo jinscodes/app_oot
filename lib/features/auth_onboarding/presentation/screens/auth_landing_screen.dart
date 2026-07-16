@@ -17,150 +17,87 @@ class AuthLandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Image.asset(
-                          'assets/images/talking_logo.png',
-                          width: 110.w,
-                          height: 110.w,
-                        ),
-                        Positioned(
-                          top: -50.h,
-                          right: -80.w,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/images/bubble1.png',
-                                width: 120.w,
-                              ),
-                              Positioned(
-                                top: 22.h,
-                                child: Text(
-                                  'Hi',
-                                  style: GoogleFonts.cormorant(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      'Only One Touch',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.cormorant(
-                        fontSize: 28.sp,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primary,
-                        letterSpacing: 0.0.h,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _TermsContainer(),
-              SizedBox(height: 32.h),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(24.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.4),
-                      blurRadius: 12.r,
-                      offset: Offset(0, 4.h),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onCreateAccount,
-                    borderRadius: BorderRadius.circular(24.r),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      child: Center(
-                        child: Text(
-                          'Create account',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            letterSpacing: 0.0.h,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              TextButton(
-                onPressed: onSignIn,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  minimumSize: Size.zero,
-                  padding: EdgeInsets.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Sign in',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.0.h,
-                  ),
-                ),
-              ),
-              SizedBox(height: 20.h),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TermsContainer extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // padding: EdgeInsets.all(16.w),
-      padding: EdgeInsets.fromLTRB(12.w, 16.h, 12.w, 16.h),
-      decoration: BoxDecoration(
-        color: AppColors.termsBackground,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Column(
+      backgroundColor: const Color(0xFFF9F9F9),
+      body: Stack(
         children: [
-          _TermsRow(
-            icon: Icons.favorite_outline,
-            text: "By tapping 'Sign in' / 'Create account', you agree to our ",
-            linkText: 'Terms of Service',
-            onLinkTap: () {},
+          Positioned(
+            left: 163.w,
+            top: 277.h,
+            child: Image.asset(
+              'assets/images/talking_logo.png',
+              width: 110.w,
+              height: 110.h,
+              fit: BoxFit.contain,
+            ),
           ),
-          SizedBox(height: 12.h),
-          _TermsRow(
-            icon: Icons.lock_outline,
-            text: 'Learn how we process your data in our ',
-            linkText: 'Privacy Policy',
-            secondLinkText: 'Cookies Policy',
-            onLinkTap: () {},
+          Positioned(
+            left: 264.w,
+            top: 223.h,
+            child: Container(
+              width: 76.w,
+              height: 54.h,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(27.r),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x1C6E4C40),
+                    blurRadius: 10,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Text(
+                'Hi!',
+                style: GoogleFonts.cormorant(
+                  color: const Color(0xFF3B2924),
+                  fontSize: 25.sp,
+                  height: 30 / 25,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 392.h,
+            child: Text(
+              'Only One Touch',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.cormorantGaramond(
+                color: AppColors.accent,
+                fontSize: 30.sp,
+                height: 36 / 30,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const _ConsentCard(),
+          _CreateAccountButton(onPressed: onCreateAccount),
+          Positioned(
+            left: 170.w,
+            right: 170.w,
+            top: 867.h,
+            height: 45.h,
+            child: TextButton(
+              onPressed: onSignIn,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                minimumSize: Size.zero,
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Sign in',
+                style: GoogleFonts.inter(
+                  fontSize: 12.sp,
+                  height: 15 / 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -168,79 +105,158 @@ class _TermsContainer extends StatelessWidget {
   }
 }
 
-class _TermsRow extends StatelessWidget {
-  const _TermsRow({
-    required this.icon,
-    required this.text,
-    required this.linkText,
-    this.secondLinkText,
-    required this.onLinkTap,
-  });
-
-  final IconData icon;
-  final String text;
-  final String linkText;
-  final String? secondLinkText;
-  final VoidCallback onLinkTap;
+class _ConsentCard extends StatelessWidget {
+  const _ConsentCard();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(icon, color: AppColors.primary, size: 18.sp),
-        SizedBox(width: 8.w),
-        Expanded(
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: text,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 11.sp,
-                    height: 1.4,
-                  ),
+    return Positioned(
+      left: 20.w,
+      top: 666.h,
+      child: Container(
+        width: 400.w,
+        height: 123.h,
+        decoration: BoxDecoration(
+          color: AppColors.termsBackground,
+          borderRadius: BorderRadius.circular(18.r),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 20.w,
+              top: 23.h,
+              child: Icon(
+                Icons.gpp_good_outlined,
+                color: const Color(0xFFEE8D7B),
+                size: 24.sp,
+              ),
+            ),
+            Positioned(
+              left: 64.w,
+              top: 19.h,
+              width: 322.w,
+              child: const _ConsentText(
+                prefix:
+                    'By tapping ‘Sign in’ / ‘Create account’, you agree to our ',
+                firstLink: 'Terms of Service',
+                suffix: '.',
+              ),
+            ),
+            Positioned(
+              left: 20.w,
+              top: 72.h,
+              child: Icon(
+                Icons.lock_outline,
+                color: const Color(0xFFEE8D7B),
+                size: 24.sp,
+              ),
+            ),
+            Positioned(
+              left: 64.w,
+              top: 68.h,
+              width: 322.w,
+              child: const _ConsentText(
+                prefix: 'Learn how we process your data in our ',
+                firstLink: 'Privacy Policy',
+                betweenLinks: ' and ',
+                secondLink: 'Cookies Policy',
+                suffix: '.',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ConsentText extends StatelessWidget {
+  const _ConsentText({
+    required this.prefix,
+    required this.firstLink,
+    required this.suffix,
+    this.betweenLinks,
+    this.secondLink,
+  });
+
+  final String prefix;
+  final String firstLink;
+  final String suffix;
+  final String? betweenLinks;
+  final String? secondLink;
+
+  @override
+  Widget build(BuildContext context) {
+    final regularStyle = GoogleFonts.inter(
+      color: Colors.black,
+      fontSize: 12.sp,
+      height: 15 / 12,
+      fontWeight: FontWeight.w400,
+    );
+    final linkStyle = regularStyle.copyWith(
+      fontWeight: FontWeight.w700,
+      decoration: TextDecoration.underline,
+      decorationColor: Colors.black,
+    );
+
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: prefix, style: regularStyle),
+          TextSpan(text: firstLink, style: linkStyle),
+          if (secondLink != null) ...[
+            TextSpan(text: betweenLinks, style: regularStyle),
+            TextSpan(text: secondLink, style: linkStyle),
+          ],
+          TextSpan(text: suffix, style: regularStyle),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreateAccountButton extends StatelessWidget {
+  const _CreateAccountButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: 20.w,
+      top: 802.h,
+      child: Material(
+        color: AppColors.accent,
+        borderRadius: BorderRadius.circular(18.r),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(18.r),
+          child: Container(
+            width: 400.w,
+            height: 58.h,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18.r),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x2E6B4B43),
+                  blurRadius: 24,
+                  spreadRadius: -4,
+                  offset: Offset(0, 10),
                 ),
-                TextSpan(
-                  text: linkText,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-                if (secondLinkText != null) ...[
-                  TextSpan(
-                    text: ' and ',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 11.sp,
-                    ),
-                  ),
-                  TextSpan(
-                    text: secondLinkText,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                  TextSpan(
-                    text: '.',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 11.sp,
-                    ),
-                  ),
-                ],
               ],
+            ),
+            child: Text(
+              'Create account',
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

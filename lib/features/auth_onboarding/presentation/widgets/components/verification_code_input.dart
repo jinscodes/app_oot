@@ -122,9 +122,7 @@ class _VerificationCodeInputState extends State<VerificationCodeInput>
       digit ?? '_',
       textAlign: TextAlign.center,
       style: TextStyle(
-        color: digit != null
-            ? AppColors.textPrimary
-            : const Color(0xFFBDBDBD),
+        color: digit != null ? AppColors.textPrimary : const Color(0xFFBDBDBD),
         fontSize: 18.sp,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.0.h,
@@ -134,8 +132,9 @@ class _VerificationCodeInputState extends State<VerificationCodeInput>
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-        widget.hasError ? const Color(0xFFD64545) : AppColors.accent;
+    final borderColor = widget.hasError
+        ? const Color(0xFFD64545)
+        : AppColors.accent;
     final borderSide = BorderSide(color: borderColor, width: 1.5.w);
     final radius = BorderRadius.circular(16.r);
 
@@ -192,9 +191,7 @@ class _VerificationCodeInputState extends State<VerificationCodeInput>
                         onTap: _focusField,
                         child: SizedBox(
                           width: 20.w,
-                          child: Center(
-                            child: _buildSlotContent(i, text),
-                          ),
+                          child: Center(child: _buildSlotContent(i, text)),
                         ),
                       ),
                     );

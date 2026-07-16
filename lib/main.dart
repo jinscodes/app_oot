@@ -15,9 +15,14 @@ import 'features/auth_onboarding/presentation/screens/email_screen.dart';
 import 'features/auth_onboarding/presentation/screens/gender_screen.dart';
 import 'features/auth_onboarding/presentation/screens/height_screen.dart';
 import 'features/auth_onboarding/presentation/screens/location_screen.dart';
+import 'features/auth_onboarding/presentation/screens/lifestyle_screen.dart';
 import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
+import 'features/auth_onboarding/presentation/screens/photo_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
+import 'features/auth_onboarding/presentation/screens/profile_prompt_screen.dart';
+import 'features/auth_onboarding/presentation/screens/religious_screen.dart';
+import 'features/auth_onboarding/presentation/screens/key_details_screen.dart';
 import 'features/auth_onboarding/presentation/screens/splash_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 import 'features/auth_onboarding/presentation/screens/want_children_screen.dart';
@@ -34,7 +39,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(375, 812),
+      designSize: const Size(440, 956),
       minTextAdapt: true,
       builder: (context, child) => MaterialApp(
         title: 'Oot',
@@ -224,8 +229,7 @@ class MyApp extends StatelessWidget {
   void _openEducationLevel(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            EducationLevelScreen(onNext: () => _openWork(context)),
+        builder: (_) => EducationLevelScreen(onNext: () => _openWork(context)),
       ),
     );
   }
@@ -262,10 +266,51 @@ class MyApp extends StatelessWidget {
         builder: (innerContext) => OnboardingPromptScreen(
           imageAsset: 'assets/images/profile_onboarding3.png',
           title: 'A little about\nyour values',
-          onNext: () => _openHome(innerContext),
+          onNext: () => _openReligious(innerContext),
         ),
       ),
       (route) => false,
+    );
+  }
+
+  void _openReligious(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ReligiousScreen(onNext: () => _openLifestyle(context)),
+      ),
+    );
+  }
+
+  void _openLifestyle(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LifestyleScreen(onNext: () => _openKeyDetails(context)),
+      ),
+    );
+  }
+
+  void _openKeyDetails(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            KeyDetailsScreen(onNext: () => _openProfilePrompt(context)),
+      ),
+    );
+  }
+
+  void _openProfilePrompt(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProfilePromptScreen(onNext: () => _openPhotos(context)),
+      ),
+    );
+  }
+
+  void _openPhotos(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PhotoScreen(onNext: () => _openHome(context)),
+      ),
     );
   }
 }
@@ -275,6 +320,35 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold();
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/talking_logo.png',
+              width: 96,
+              height: 82,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'You’re all set',
+              style: GoogleFonts.cormorant(
+                color: AppColors.textPrimary,
+                fontSize: 38,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your thoughtful introductions are ready.',
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

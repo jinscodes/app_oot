@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/widgets/buttons/circle_arrow_button.dart';
+import '../widgets/oot_design_system.dart';
 
 class OnboardingPromptScreen extends StatelessWidget {
   const OnboardingPromptScreen({
@@ -18,50 +16,67 @@ class OnboardingPromptScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(child: Image.asset(imageAsset, fit: BoxFit.cover)),
-          const Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Color.fromRGBO(0, 0, 0, 0.7)],
-                  stops: [0.45, 1.0],
-                ),
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 32.h),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.cormorant(
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                        height: 1.2,
-                        letterSpacing: 0.0.h,
-                      ),
-                    ),
-                    CircleArrowButton(color: Colors.white, onPressed: onNext),
-                  ],
-                ),
-              ),
-            ),
-          ),
+    if (imageAsset.endsWith('profile_onboarding2.png')) {
+      return OotStoryIntroScreen(
+        progressLabel: 'Discovery',
+        currentStep: 1,
+        totalSteps: 5,
+        imageAsset: imageAsset,
+        imageAlignment: const Alignment(0, -.32),
+        pill: 'Find your place',
+        eyebrow: 'Discovery',
+        title: 'Where should we look?',
+        description: 'Tell us where you’d like to meet someone special.',
+        benefits: const [
+          ('Nearby', 'Close to home'),
+          ('Travel', 'Open to explore'),
+          ('Flexible', 'You decide'),
         ],
-      ),
+        buttonLabel: 'Set preferences',
+        onContinue: onNext,
+      );
+    }
+
+    if (imageAsset.endsWith('profile_onboarding3.png')) {
+      return OotStoryIntroScreen(
+        progressLabel: 'Values',
+        currentStep: 1,
+        totalSteps: 1,
+        imageAsset: imageAsset,
+        imageAlignment: const Alignment(0, -.05),
+        pill: 'What matters',
+        eyebrow: 'Values',
+        title: 'A little about your values',
+        description:
+            'The things that matter to you can shape a more meaningful connection.',
+        benefits: const [
+          ('Honesty', 'Be yourself'),
+          ('Kindness', 'Lead with care'),
+          ('Growth', 'Build together'),
+        ],
+        buttonLabel: 'Finish profile',
+        onContinue: onNext,
+      );
+    }
+
+    return OotStoryIntroScreen(
+      progressLabel: 'Your profile',
+      currentStep: 6,
+      totalSteps: 6,
+      imageAsset: imageAsset,
+      imageAlignment: const Alignment(0, .65),
+      pill: 'A little about you',
+      eyebrow: 'Profile setup',
+      title: 'Tell me about yourself',
+      description:
+          'A few thoughtful details help us introduce you to the right people.',
+      benefits: const [
+        ('2 min', 'Quick start'),
+        ('Private', 'You control it'),
+        ('Guided', 'Step by step'),
+      ],
+      buttonLabel: 'Build my profile',
+      onContinue: onNext,
     );
   }
 }

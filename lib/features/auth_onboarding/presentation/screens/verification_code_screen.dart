@@ -6,10 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/buttons/circle_arrow_button.dart';
-import '../widgets/components/verification_code_input.dart';
-
-const int _resendCountdownSeconds = 30;
+import '../widgets/oot_design_system.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
   const VerificationCodeScreen({
@@ -32,205 +29,202 @@ class VerificationCodeScreen extends StatefulWidget {
 }
 
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
-  bool _isValid = false;
-  bool _hasError = false;
-  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   Timer? _timer;
-  int _secondsRemaining = _resendCountdownSeconds;
+  int _seconds = 30;
+  bool _hasError = false;
+
+  bool get _isEmail => widget.sentTo.contains('@');
+  bool get _isComplete => _controller.text.length == 6;
 
   @override
   void initState() {
     super.initState();
-    _startCountdown();
-    _showDevCodeSnackBar(widget.initialCode);
-    _codeController.addListener(_clearErrorOnEdit);
+    _startTimer();
+    _showDevCode(widget.initialCode);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _codeController.removeListener(_clearErrorOnEdit);
-    _codeController.dispose();
+    _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _clearErrorOnEdit() {
-    if (_hasError) setState(() => _hasError = false);
-  }
-
-  void _startCountdown() {
+  void _startTimer() {
     _timer?.cancel();
-    setState(() => _secondsRemaining = _resendCountdownSeconds);
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) {
-        t.cancel();
+    _seconds = 30;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _seconds <= 0) {
+        timer.cancel();
         return;
       }
-      setState(() => _secondsRemaining--);
-      if (_secondsRemaining <= 0) t.cancel();
+      setState(() => _seconds--);
     });
   }
 
-  void _showDevCodeSnackBar(String? code) {
+  void _showDevCode(String? code) {
     if (code == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Dev mock code: $code'),
-          duration: const Duration(seconds: 10),
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
             label: 'Fill',
-            onPressed: () => _fillCode(code),
+            onPressed: () => setState(() => _controller.text = code),
           ),
         ),
       );
     });
   }
 
-  void _fillCode(String code) {
-    _codeController.value = TextEditingValue(
-      text: code,
-      selection: TextSelection.collapsed(offset: code.length),
-    );
-  }
-
-  void _handleNext() {
-    final ok = widget.onVerify(_codeController.text);
-    if (!mounted) return;
-    if (ok) {
+  void _verify() {
+    if (widget.onVerify(_controller.text)) {
       widget.onNext?.call();
     } else {
-      setState(() => _hasError = true);
       HapticFeedback.heavyImpact();
+      setState(() => _hasError = true);
     }
   }
 
-  void _handleResend() {
+  void _resend() {
     final code = widget.onResend();
     if (code == null) return;
-    _startCountdown();
-    _showDevCodeSnackBar(code);
+    _startTimer();
+    _showDevCode(code);
   }
 
   @override
   Widget build(BuildContext context) {
-    final infoStyle = TextStyle(
-      color: AppColors.textPrimary,
-      fontSize: 12.sp,
-      fontWeight: FontWeight.w500,
-      letterSpacing: 0.0.h,
-    );
-    final linkStyle = TextStyle(
-      color: AppColors.textPrimary,
-      fontSize: 12.sp,
-      fontWeight: FontWeight.w700,
-      decoration: TextDecoration.underline,
-      letterSpacing: 0.0.h,
-    );
-
-    return Scaffold(
-      body: Stack(
+    final target = widget.sentTo.isEmpty
+        ? (_isEmail ? 'hello@example.com' : '+82 10 1234 5678')
+        : widget.sentTo;
+    return OotOnboardingScaffold(
+      progressLabel: _isEmail ? 'Verify email' : 'Verify number',
+      currentStep: _isEmail ? 5 : 3,
+      totalSteps: 6,
+      buttonLabel: _isEmail ? 'Verify email' : 'Verify',
+      onContinue: _isComplete ? _verify : null,
+      body: Column(
         children: [
-          Positioned(
-            top: 120.h,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: SizedBox(
-                width: 310.w,
-                height: 80.h,
-                child: Stack(
+          OotHero(
+            eyebrow: _isEmail ? 'Email verification' : 'Phone verification',
+            title: _isEmail ? 'Check your inbox' : 'Enter your code',
+            description: _isEmail
+                ? 'Enter the 6-digit code we sent to $target.'
+                : 'We sent a 6-digit code to $target.',
+          ),
+          SizedBox(height: 34.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OotFieldLabel(
+              _isEmail ? 'Email verification code' : 'Verification code',
+            ),
+          ),
+          SizedBox(height: 10.h),
+          GestureDetector(
+            onTap: () => _focusNode.requestFocus(),
+            child: Stack(
+              children: [
+                Opacity(
+                  opacity: .01,
+                  child: TextField(
+                    focusNode: _focusNode,
+                    controller: _controller,
+                    autofocus: true,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (_) => setState(() => _hasError = false),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset(
-                      'assets/images/bubble2.png',
-                      width: 310.w,
-                      height: 80.h,
-                      fit: BoxFit.fill,
-                    ),
-                    Positioned(
-                      top: 22.h,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Text(
-                          'Enter your verification code',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.cormorant(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.textPrimary,
-                            letterSpacing: 0.0.h,
-                          ),
-                        ),
+                    for (var index = 0; index < 6; index++)
+                      _DigitBox(
+                        value: index < _controller.text.length
+                            ? _controller.text[index]
+                            : '',
+                        active: index == _controller.text.length.clamp(0, 5),
+                        error: _hasError,
                       ),
-                    ),
                   ],
                 ),
-              ),
+              ],
             ),
           ),
-          Positioned(
-            top: 210.h,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Image.asset(
-                'assets/images/talking_logo.png',
-                width: 80.w,
-                height: 80.w,
+          SizedBox(height: 10.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${_isEmail ? 'Code expires' : 'Code sent'} · 00:${_seconds.toString().padLeft(2, '0')}',
+                style: ootHelperStyle(),
               ),
-            ),
-          ),
-          Positioned(
-            top: 330.h,
-            left: 20.w,
-            right: 20.w,
-            child: VerificationCodeInput(
-              controller: _codeController,
-              hasError: _hasError,
-              onValidityChanged: (valid) {
-                if (valid != _isValid) setState(() => _isValid = valid);
-              },
-            ),
-          ),
-          Positioned(
-            top: 390.h,
-            left: 20.w,
-            right: 20.w,
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('Code sent to ${widget.sentTo}', style: infoStyle),
-                  SizedBox(height: 4.h),
-                  if (_secondsRemaining > 0)
-                    Text(
-                      'For resending: ${_secondsRemaining}s',
-                      style: infoStyle,
-                    )
-                  else
-                    GestureDetector(
-                      onTap: _handleResend,
-                      child: Text('Resend code', style: linkStyle),
-                    ),
-                ],
+              GestureDetector(
+                onTap: _seconds == 0 ? _resend : null,
+                child: Text(
+                  'Resend code',
+                  style: GoogleFonts.inter(
+                    color: _seconds == 0
+                        ? AppColors.accent
+                        : AppColors.accent.withValues(alpha: .65),
+                    fontSize: 12.sp,
+                    height: 16 / 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            bottom: 32.h,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: CircleArrowButton(
-                onPressed: _isValid ? _handleNext : null,
-              ),
-            ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DigitBox extends StatelessWidget {
+  const _DigitBox({
+    required this.value,
+    required this.active,
+    required this.error,
+  });
+
+  final String value;
+  final bool active;
+  final bool error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 57.w,
+      height: 58.h,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: error
+              ? Colors.redAccent
+              : active
+              ? AppColors.primary
+              : const Color(0xFFE6DBD5),
+          width: active || error ? 1.5.w : 1.w,
+        ),
+      ),
+      child: Text(
+        value,
+        style: GoogleFonts.inter(
+          color: AppColors.textPrimary,
+          fontSize: 16.sp,
+          height: 22 / 16,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

@@ -1,29 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'package:latlong2/latlong.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/buttons/circle_arrow_button.dart';
-import '../../../../core/widgets/inputs/rounded_text_input.dart';
-
-const LatLng _defaultCenter = LatLng(41.8781, -87.6298);
-const double _initialZoom = 12;
-const double _addressZoom = 14;
-const Duration _searchDebounce = Duration(milliseconds: 400);
-const int _minQueryLength = 3;
-const int _maxSuggestions = 5;
-const String _userAgent = 'com.example.app_oot/1.0';
-const Distance _distance = Distance();
-const double _minZoom = 2;
-const double _maxZoom = 18;
+import '../widgets/oot_design_system.dart';
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key, this.onNext});
@@ -35,401 +15,159 @@ class LocationScreen extends StatefulWidget {
 }
 
 class _LocationScreenState extends State<LocationScreen> {
-  final TextEditingController _addressController = TextEditingController();
-  final MapController _mapController = MapController();
-  LatLng _markerPosition = _defaultCenter;
-  LatLng? _userLocation;
-  bool _hasSelection = false;
-
-  Timer? _debounceTimer;
-  List<_AddressSuggestion> _suggestions = [];
-  bool _programmaticUpdate = false;
-  String _lastQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _addressController.addListener(_onAddressChanged);
-    _requestUserLocation();
-  }
+  final TextEditingController _controller = TextEditingController(
+    text: 'Chicago, IL, United States',
+  );
 
   @override
   void dispose() {
-    _addressController.removeListener(_onAddressChanged);
-    _addressController.dispose();
-    _mapController.dispose();
-    _debounceTimer?.cancel();
+    _controller.dispose();
     super.dispose();
-  }
-
-  Future<void> _requestUserLocation() async {
-    try {
-      if (!await Geolocator.isLocationServiceEnabled()) return;
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        return;
-      }
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.lowest,
-        ),
-      );
-      if (!mounted) return;
-      setState(() {
-        _userLocation = LatLng(position.latitude, position.longitude);
-      });
-    } catch (_) {
-      // silent fallback — suggestions just won't be distance-sorted
-    }
-  }
-
-  void _setText(String text) {
-    _programmaticUpdate = true;
-    _addressController.text = text;
-    _programmaticUpdate = false;
-  }
-
-  void _onAddressChanged() {
-    if (_programmaticUpdate) return;
-    _debounceTimer?.cancel();
-    final query = _addressController.text.trim();
-    if (query.length < _minQueryLength) {
-      if (_suggestions.isNotEmpty) {
-        setState(() => _suggestions = []);
-      }
-      return;
-    }
-    _debounceTimer = Timer(_searchDebounce, () => _searchAddresses(query));
-  }
-
-  Future<void> _searchAddresses(String query) async {
-    _lastQuery = query;
-    try {
-      final url = Uri.https('nominatim.openstreetmap.org', '/search', {
-        'q': query,
-        'format': 'json',
-        'limit': '$_maxSuggestions',
-        'addressdetails': '1',
-      });
-      final response = await http.get(
-        url,
-        headers: const {'User-Agent': _userAgent},
-      );
-      if (!mounted || _lastQuery != query) return;
-      if (response.statusCode != 200) return;
-      final data = jsonDecode(response.body) as List<dynamic>;
-      final suggestions = data
-          .map((item) => _AddressSuggestion.fromJson(item as Map<String, dynamic>))
-          .toList();
-      _sortByDistance(suggestions);
-      setState(() => _suggestions = suggestions);
-    } catch (_) {
-      // silent
-    }
-  }
-
-  void _sortByDistance(List<_AddressSuggestion> list) {
-    final origin = _userLocation;
-    if (origin == null) return;
-    list.sort((a, b) {
-      final da = _distance.distance(origin, LatLng(a.lat, a.lon));
-      final db = _distance.distance(origin, LatLng(b.lat, b.lon));
-      return da.compareTo(db);
-    });
-  }
-
-  void _handleSuggestionTap(_AddressSuggestion suggestion) {
-    FocusManager.instance.primaryFocus?.unfocus();
-    final position = LatLng(suggestion.lat, suggestion.lon);
-    _mapController.move(position, _addressZoom);
-    _setText(suggestion.displayName);
-    setState(() {
-      _markerPosition = position;
-      _hasSelection = true;
-      _suggestions = [];
-    });
-  }
-
-  void _adjustZoom(double delta) {
-    final camera = _mapController.camera;
-    final newZoom = (camera.zoom + delta).clamp(_minZoom, _maxZoom);
-    _mapController.move(camera.center, newZoom);
-  }
-
-  void _handleMapTap(TapPosition position, LatLng point) {
-    FocusManager.instance.primaryFocus?.unfocus();
-    setState(() {
-      _markerPosition = point;
-      _hasSelection = true;
-      _suggestions = [];
-    });
-    _setText('');
-    _reverseGeocode(point);
-  }
-
-  Future<void> _reverseGeocode(LatLng point) async {
-    debugPrint(
-      '[LocationScreen] Map tapped at '
-      '(${point.latitude.toStringAsFixed(5)}, '
-      '${point.longitude.toStringAsFixed(5)})',
-    );
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        point.latitude,
-        point.longitude,
-      );
-      if (!mounted || placemarks.isEmpty) {
-        debugPrint('[LocationScreen] No placemarks resolved for tap');
-        return;
-      }
-      final p = placemarks.first;
-      final stateZip = [p.administrativeArea, p.postalCode]
-          .where((s) => s != null && s.isNotEmpty)
-          .cast<String>()
-          .join(' ');
-      final parts = <String>[
-        if (p.street != null && p.street!.isNotEmpty) p.street!,
-        if (p.locality != null && p.locality!.isNotEmpty) p.locality!,
-        if (stateZip.isNotEmpty) stateZip,
-        if (p.country != null && p.country!.isNotEmpty) p.country!,
-      ];
-      if (parts.isEmpty) {
-        debugPrint('[LocationScreen] Placemark had no readable fields');
-        return;
-      }
-      final address = parts.join(', ');
-      debugPrint('[LocationScreen] Resolved address: $address');
-      _setText(address);
-    } catch (e) {
-      debugPrint('[LocationScreen] Reverse geocode failed: $e');
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: Column(
-          children: [
-            SizedBox(height: 175.h),
-            Text(
-              'Where are you from?',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 26.sp,
+    return OotOnboardingScaffold(
+      progressLabel: 'Match preferences',
+      currentStep: 1,
+      totalSteps: 7,
+      buttonLabel: 'Continue',
+      onContinue: _controller.text.trim().isEmpty ? null : widget.onNext,
+      body: Column(
+        children: [
+          const OotHero(
+            eyebrow: 'Your world',
+            title: 'Where are you from?',
+            description:
+                'Share a place that feels like home — it’s completely optional.',
+          ),
+          SizedBox(height: 34.h),
+          const OotSectionLabel('Your location'),
+          SizedBox(height: 10.h),
+          const _NeighborhoodMap(),
+          SizedBox(height: 10.h),
+          Container(
+            height: 52.h,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(color: AppColors.borderStrong),
+            ),
+            child: TextField(
+              controller: _controller,
+              onChanged: (_) => setState(() {}),
+              style: GoogleFonts.inter(
+                color: AppColors.textPrimary,
+                fontSize: 14.sp,
+                height: 20 / 14,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: AppColors.textMuted,
+                  size: 20.sp,
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 16.h),
               ),
             ),
-            SizedBox(height: 12.h),
-            Text(
-              "Totally optional, though people often connect over where someone's from.",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cormorant(
-                fontSize: 12.sp,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.0.h,
+          ),
+          SizedBox(height: 10.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Only used to personalize nearby matches.',
+              style: ootHelperStyle(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NeighborhoodMap extends StatelessWidget {
+  const _NeighborhoodMap();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20.r),
+      child: Container(
+        height: 184.h,
+        color: const Color(0xFFEEE5DE),
+        child: Stack(
+          children: [
+            _block(18, 18, 92, 48, const Color(0xFFE5D7CC)),
+            _block(126, 14, 92, 58, const Color(0xFFE9DDD4)),
+            _block(254, 18, 118, 68, const Color(0xFFDCE5D6)),
+            _block(20, 118, 112, 48, const Color(0xFFE7DAD0)),
+            _block(276, 112, 94, 54, const Color(0xFFE4D5CA)),
+            Positioned(
+              top: 82.h,
+              left: 0,
+              right: 0,
+              child: Container(height: 20.h, color: AppColors.background),
+            ),
+            Positioned(
+              left: 224.w,
+              top: 0,
+              bottom: 0,
+              child: Container(width: 18.w, color: AppColors.background),
+            ),
+            Positioned(
+              left: 211.w,
+              top: 50.h,
+              child: Icon(
+                Icons.location_on_rounded,
+                size: 46.sp,
+                color: AppColors.accentStrong,
               ),
             ),
-            SizedBox(height: 32.h),
-            Container(
-              height: 220.h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(
-                  color: AppColors.accent,
-                  width: 1.5.w,
+            Positioned(
+              left: 140.w,
+              top: 132.h,
+              child: Container(
+                width: 112.w,
+                height: 32.h,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .94),
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                child: Text(
+                  'Chicago',
+                  style: GoogleFonts.inter(
+                    color: AppColors.textPrimary,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15.r),
-                child: Stack(
-                  children: [
-                    FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: _markerPosition,
-                        initialZoom: _initialZoom,
-                        minZoom: _minZoom,
-                        maxZoom: _maxZoom,
-                        onTap: _handleMapTap,
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: _userAgent,
-                        ),
-                        if (_hasSelection)
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: _markerPosition,
-                                width: 40.w,
-                                height: 40.w,
-                                alignment: Alignment.topCenter,
-                                child: Icon(
-                                  Icons.location_pin,
-                                  color: AppColors.accent,
-                                  size: 40.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                    Positioned(
-                      right: 8.w,
-                      bottom: 8.h,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _ZoomButton(
-                            icon: Icons.add,
-                            onTap: () => _adjustZoom(1),
-                          ),
-                          SizedBox(height: 6.h),
-                          _ZoomButton(
-                            icon: Icons.remove,
-                            onTap: () => _adjustZoom(-1),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
-            SizedBox(height: 12.h),
-            RoundedTextInput(
-              controller: _addressController,
-              hintText: 'Enter your address, neighborhood, or ZIP',
-              keyboardType: TextInputType.streetAddress,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (q) => _searchAddresses(q.trim()),
-            ),
-            if (_suggestions.isNotEmpty) ...[
-              SizedBox(height: 6.h),
-              _SuggestionsDropdown(
-                suggestions: _suggestions,
-                onTap: _handleSuggestionTap,
-              ),
-            ],
-            const Spacer(),
-            CircleArrowButton(
-              onPressed: _hasSelection ? widget.onNext : null,
-            ),
-            SizedBox(height: 32.h),
           ],
         ),
       ),
     );
   }
-}
 
-class _AddressSuggestion {
-  _AddressSuggestion({
-    required this.displayName,
-    required this.lat,
-    required this.lon,
-  });
-
-  final String displayName;
-  final double lat;
-  final double lon;
-
-  factory _AddressSuggestion.fromJson(Map<String, dynamic> json) {
-    return _AddressSuggestion(
-      displayName: json['display_name'] as String,
-      lat: double.parse(json['lat'].toString()),
-      lon: double.parse(json['lon'].toString()),
-    );
-  }
-}
-
-class _SuggestionsDropdown extends StatelessWidget {
-  const _SuggestionsDropdown({
-    required this.suggestions,
-    required this.onTap,
-  });
-
-  final List<_AddressSuggestion> suggestions;
-  final ValueChanged<_AddressSuggestion> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(maxHeight: 180.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: const Color(0xFFE5E5E5), width: 1.w),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: ListView.separated(
-        shrinkWrap: true,
-        padding: EdgeInsets.zero,
-        itemCount: suggestions.length,
-        separatorBuilder: (_, _) => Divider(
-          height: 1,
-          thickness: 1,
-          color: const Color(0xFFF0F0F0),
-          indent: 16.w,
-          endIndent: 16.w,
-        ),
-        itemBuilder: (context, i) {
-          final s = suggestions[i];
-          return InkWell(
-            onTap: () => onTap(s),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 12.h,
-              ),
-              child: Text(
-                s.displayName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 12.sp,
-                  height: 1.3,
-                  letterSpacing: 0.0.h,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ZoomButton extends StatelessWidget {
-  const _ZoomButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      shape: const CircleBorder(),
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 32.w,
-          height: 32.w,
-          child: Icon(icon, size: 18.sp, color: AppColors.textPrimary),
+  Widget _block(
+    double left,
+    double top,
+    double width,
+    double height,
+    Color color,
+  ) {
+    return Positioned(
+      left: left.w,
+      top: top.h,
+      child: Container(
+        width: width.w,
+        height: height.h,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
     );

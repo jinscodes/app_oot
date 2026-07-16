@@ -3,8 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/buttons/circle_arrow_button.dart';
-import '../../../../core/widgets/inputs/rounded_text_input.dart';
+import '../widgets/oot_design_system.dart';
 
 class WorkScreen extends StatefulWidget {
   const WorkScreen({super.key, this.onNext});
@@ -16,192 +15,122 @@ class WorkScreen extends StatefulWidget {
 }
 
 class _WorkScreenState extends State<WorkScreen> {
-  final TextEditingController _companyController = TextEditingController();
-  final TextEditingController _jobTitleController = TextEditingController();
-  bool _companyVisible = false;
-  bool _jobTitleVisible = false;
+  final TextEditingController _company = TextEditingController(text: 'OpenAI');
+  final TextEditingController _role = TextEditingController(
+    text: 'Product Designer',
+  );
+  bool _visible = true;
 
   @override
   void dispose() {
-    _companyController.dispose();
-    _jobTitleController.dispose();
+    _company.dispose();
+    _role.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return OotOnboardingScaffold(
+      progressLabel: 'Match preferences',
+      currentStep: 5,
+      totalSteps: 7,
+      buttonLabel: 'Continue',
+      onContinue: widget.onNext,
       body: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Column(
-                children: [
-                  SizedBox(height: 175.h),
-                  Text(
-                    'What keeps you busy these\ndays?',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.cormorant(
-                      fontSize: 26.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                      letterSpacing: 0.0.h,
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
-                  Text(
-                    'Each question is optional, but including this can give others a window into your world.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.cormorant(
-                      fontSize: 12.sp,
-                      color: AppColors.textPrimary,
-                      letterSpacing: 0.0.h,
-                    ),
-                  ),
-                  SizedBox(height: 32.h),
-                  _FieldCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _CardHeading('Where do you work?'),
-                        SizedBox(height: 16.h),
-                        RoundedTextInput(
-                          controller: _companyController,
-                          hintText: 'In your words',
-                          textAlign: TextAlign.center,
-                          textCapitalization: TextCapitalization.words,
-                        ),
-                        SizedBox(height: 16.h),
-                        _VisibilityToggle(
-                          visible: _companyVisible,
-                          onTap: () => setState(
-                            () => _companyVisible = !_companyVisible,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  _FieldCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _CardHeading("What’s your job title?"),
-                        SizedBox(height: 6.h),
-                        Text(
-                          "If you’re student, you’re welcome to mention that instead.",
-                          style: GoogleFonts.cormorant(
-                            color: AppColors.textPrimary,
-                            fontSize: 12.sp,
-                            letterSpacing: 0.0.h,
-                          ),
-                        ),
-                        SizedBox(height: 16.h),
-                        RoundedTextInput(
-                          controller: _jobTitleController,
-                          hintText: 'In your words',
-                          textAlign: TextAlign.center,
-                          textCapitalization: TextCapitalization.words,
-                        ),
-                        SizedBox(height: 16.h),
-                        _VisibilityToggle(
-                          visible: _jobTitleVisible,
-                          onTap: () => setState(
-                            () => _jobTitleVisible = !_jobTitleVisible,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 24.h),
-                ],
-              ),
-            ),
+          const OotHero(
+            eyebrow: 'Your day-to-day',
+            title: 'What keeps you busy?',
+            description: 'Share as much or as little as you like.',
           ),
-          CircleArrowButton(onPressed: widget.onNext),
-          SizedBox(height: 32.h),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardHeading extends StatelessWidget {
-  const _CardHeading(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: GoogleFonts.cormorant(
-        color: AppColors.textPrimary,
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.0.h,
-      ),
-    );
-  }
-}
-
-class _FieldCard extends StatelessWidget {
-  const _FieldCard({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: const Color(0xFFE5E5E5), width: 1.w),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _VisibilityToggle extends StatelessWidget {
-  const _VisibilityToggle({required this.visible, required this.onTap});
-  final bool visible;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Row(
-        children: [
+          SizedBox(height: 34.h),
+          const OotSectionLabel('Work'),
+          SizedBox(height: 10.h),
           Container(
-            width: 18.w,
-            height: 18.w,
+            height: 220.h,
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(4.r),
-              border: Border.all(
-                color: visible ? AppColors.accent : const Color(0xFFD0D0D0),
-                width: 1.w,
-              ),
+              borderRadius: BorderRadius.circular(20.r),
+              border: Border.all(color: AppColors.border),
             ),
-            child: visible
-                ? Icon(Icons.check, size: 14.sp, color: AppColors.textPrimary)
-                : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _label('Where do you work?'),
+                SizedBox(height: 8.h),
+                _workField(_company, Icons.work_outline_rounded),
+                SizedBox(height: 8.h),
+                _label('What’s your job title?'),
+                SizedBox(height: 8.h),
+                _workField(_role, Icons.person_outline_rounded),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Show on profile',
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF6B5A53),
+                          fontSize: 12.sp,
+                          height: 18 / 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    OotToggle(
+                      value: _visible,
+                      onChanged: (value) => setState(() => _visible = value),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          SizedBox(width: 8.w),
-          Text(
-            visible ? 'Hidden on profile' : 'Visible on profile',
-            style: GoogleFonts.cormorant(
-              color: AppColors.textPrimary,
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.0.h,
+          SizedBox(height: 10.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Student? You can add that here too.',
+              style: ootHelperStyle(),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _label(String value) => Text(
+    value,
+    style: GoogleFonts.inter(
+      color: const Color(0xFF6B5A53),
+      fontSize: 12.sp,
+      height: 16 / 12,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+
+  Widget _workField(TextEditingController controller, IconData icon) {
+    return Container(
+      height: 48.h,
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: AppColors.borderStrong),
+      ),
+      child: TextField(
+        controller: controller,
+        style: GoogleFonts.inter(
+          color: AppColors.textPrimary,
+          fontSize: 14.sp,
+          height: 20 / 14,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          prefixIcon: Icon(icon, size: 18.sp, color: AppColors.textMuted),
+          contentPadding: EdgeInsets.symmetric(vertical: 14.h),
+        ),
       ),
     );
   }

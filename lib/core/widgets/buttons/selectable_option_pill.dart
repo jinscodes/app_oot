@@ -19,11 +19,11 @@ class SelectableOptionPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-        selected ? AppColors.accent : const Color(0xFFD0D0D0);
+    final borderColor = selected ? AppColors.accent : const Color(0xFFD0D0D0);
     final borderWidth = selected ? 2.w : 1.5.w;
-    final textColor =
-        selected ? AppColors.textPrimary : const Color(0xFFBDBDBD);
+    final textColor = selected
+        ? AppColors.textPrimary
+        : const Color(0xFFBDBDBD);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

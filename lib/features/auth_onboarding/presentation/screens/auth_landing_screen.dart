@@ -1,8 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../widgets/components/legal_policy_bottom_sheet.dart';
 
 class AuthLandingScreen extends StatelessWidget {
   const AuthLandingScreen({
@@ -135,11 +137,15 @@ class _ConsentCard extends StatelessWidget {
               left: 64.w,
               top: 19.h,
               width: 322.w,
-              child: const _ConsentText(
+              child: _ConsentText(
                 prefix:
                     'By tapping ‘Sign in’ / ‘Create account’, you agree to our ',
                 firstLink: 'Terms of Service',
                 suffix: '.',
+                onFirstLinkTap: () => showLegalPolicyBottomSheet(
+                  context: context,
+                  policy: LegalPolicy.termsOfService,
+                ),
               ),
             ),
             Positioned(
@@ -155,12 +161,20 @@ class _ConsentCard extends StatelessWidget {
               left: 64.w,
               top: 68.h,
               width: 322.w,
-              child: const _ConsentText(
+              child: _ConsentText(
                 prefix: 'Learn how we process your data in our ',
                 firstLink: 'Privacy Policy',
                 betweenLinks: ' and ',
                 secondLink: 'Cookies Policy',
                 suffix: '.',
+                onFirstLinkTap: () => showLegalPolicyBottomSheet(
+                  context: context,
+                  policy: LegalPolicy.privacyPolicy,
+                ),
+                onSecondLinkTap: () => showLegalPolicyBottomSheet(
+                  context: context,
+                  policy: LegalPolicy.cookiesPolicy,
+                ),
               ),
             ),
           ],
@@ -170,20 +184,55 @@ class _ConsentCard extends StatelessWidget {
   }
 }
 
-class _ConsentText extends StatelessWidget {
+class _ConsentText extends StatefulWidget {
   const _ConsentText({
     required this.prefix,
     required this.firstLink,
     required this.suffix,
+    required this.onFirstLinkTap,
     this.betweenLinks,
     this.secondLink,
+    this.onSecondLinkTap,
   });
 
   final String prefix;
   final String firstLink;
   final String suffix;
+  final VoidCallback onFirstLinkTap;
   final String? betweenLinks;
   final String? secondLink;
+  final VoidCallback? onSecondLinkTap;
+
+  @override
+  State<_ConsentText> createState() => _ConsentTextState();
+}
+
+class _ConsentTextState extends State<_ConsentText> {
+  late final TapGestureRecognizer _firstLinkRecognizer;
+  late final TapGestureRecognizer _secondLinkRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _firstLinkRecognizer = TapGestureRecognizer()
+      ..onTap = widget.onFirstLinkTap;
+    _secondLinkRecognizer = TapGestureRecognizer()
+      ..onTap = widget.onSecondLinkTap;
+  }
+
+  @override
+  void didUpdateWidget(covariant _ConsentText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _firstLinkRecognizer.onTap = widget.onFirstLinkTap;
+    _secondLinkRecognizer.onTap = widget.onSecondLinkTap;
+  }
+
+  @override
+  void dispose() {
+    _firstLinkRecognizer.dispose();
+    _secondLinkRecognizer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -202,13 +251,21 @@ class _ConsentText extends StatelessWidget {
     return Text.rich(
       TextSpan(
         children: [
-          TextSpan(text: prefix, style: regularStyle),
-          TextSpan(text: firstLink, style: linkStyle),
-          if (secondLink != null) ...[
-            TextSpan(text: betweenLinks, style: regularStyle),
-            TextSpan(text: secondLink, style: linkStyle),
+          TextSpan(text: widget.prefix, style: regularStyle),
+          TextSpan(
+            text: widget.firstLink,
+            style: linkStyle,
+            recognizer: _firstLinkRecognizer,
+          ),
+          if (widget.secondLink != null) ...[
+            TextSpan(text: widget.betweenLinks, style: regularStyle),
+            TextSpan(
+              text: widget.secondLink,
+              style: linkStyle,
+              recognizer: _secondLinkRecognizer,
+            ),
           ],
-          TextSpan(text: suffix, style: regularStyle),
+          TextSpan(text: widget.suffix, style: regularStyle),
         ],
       ),
     );

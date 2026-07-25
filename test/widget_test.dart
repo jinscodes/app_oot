@@ -61,15 +61,35 @@ void main() {
     await tester.tap(find.text('Create account'));
     expect(createAccountTapped, isTrue);
 
+    String? submittedPhone;
     await tester.pumpWidget(
       ScreenUtilInit(
         designSize: const Size(440, 956),
-        builder: (_, _) => const MaterialApp(home: PhoneNumberScreen()),
+        builder: (_, _) => MaterialApp(
+          home: PhoneNumberScreen(onNext: (phone) => submittedPhone = phone),
+        ),
       ),
     );
     await tester.pump();
     expect(find.text('What’s your number?'), findsOneWidget);
     expect(find.text('YOUR NUMBER'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Search'), findsNothing);
+    expect(find.text('Japan'), findsOneWidget);
+    expect(find.text('South Korea'), findsOneWidget);
+    expect(find.text('United States'), findsOneWidget);
+    expect(find.text('Canada'), findsNothing);
+
+    await tester.tap(find.text('United States'));
+    await tester.pumpAndSettle();
+    expect(find.text('+1'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '2025550123');
+    await tester.pump();
+    await tester.tap(find.text('Continue'));
+    expect(submittedPhone, '+12025550123');
   });
 
   testWidgets('all Figma onboarding frames render without layout errors', (

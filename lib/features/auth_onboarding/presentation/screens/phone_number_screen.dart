@@ -37,6 +37,12 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
     showCountryPicker(
       context: context,
       showPhoneCode: true,
+      showSearch: false,
+      countryFilter: const ['JP', 'KR', 'US'],
+      countryListTheme: CountryListThemeData(
+        bottomSheetHeight: 180.h,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+      ),
       onSelect: (country) => setState(() => _country = country),
     );
   }

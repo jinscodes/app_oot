@@ -16,21 +16,37 @@ class BirthdayScreen extends StatefulWidget {
 }
 
 class _BirthdayScreenState extends State<BirthdayScreen> {
-  final TextEditingController _year = TextEditingController(text: '1997');
-  final TextEditingController _month = TextEditingController(text: '02');
-  final TextEditingController _day = TextEditingController(text: '15');
+  final TextEditingController _year = TextEditingController();
+  final TextEditingController _month = TextEditingController();
+  final TextEditingController _day = TextEditingController();
+  final FocusNode _yearFocus = FocusNode();
+  final FocusNode _monthFocus = FocusNode();
+  final FocusNode _dayFocus = FocusNode();
+  bool _showConfirmation = false;
 
-  bool get _valid {
-    final date = DateTime.tryParse(
-      '${_year.text.padLeft(4, '0')}-${_month.text.padLeft(2, '0')}-${_day.text.padLeft(2, '0')}',
-    );
-    return date != null && date.isBefore(DateTime.now());
+  DateTime? get _birthDate {
+    if (_year.text.length != 4 ||
+        _month.text.length != 2 ||
+        _day.text.length != 2) {
+      return null;
+    }
+
+    final year = int.tryParse(_year.text);
+    final month = int.tryParse(_month.text);
+    final day = int.tryParse(_day.text);
+    if (year == null || month == null || day == null || year < 1) return null;
+
+    final date = DateTime(year, month, day);
+    if (date.year != year || date.month != month || date.day != day) {
+      return null;
+    }
+    return date;
   }
 
+  bool get _valid => _birthDate?.isBefore(DateTime.now()) ?? false;
+
   int get _age {
-    final birth = DateTime.tryParse(
-      '${_year.text}-${_month.text}-${_day.text}',
-    );
+    final birth = _birthDate;
     if (birth == null) return 0;
     final now = DateTime.now();
     var age = now.year - birth.year;
@@ -41,11 +57,48 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
     return age;
   }
 
+  String get _formattedBirthday {
+    final birth = _birthDate;
+    if (birth == null) return '';
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return '${months[birth.month - 1]} ${birth.day}, ${birth.year}';
+  }
+
+  void _onDateChanged() {
+    setState(() => _showConfirmation = false);
+  }
+
+  void _onContinue() {
+    if (!_valid) return;
+    if (!_showConfirmation) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      setState(() => _showConfirmation = true);
+      return;
+    }
+    widget.onNext?.call();
+  }
+
   @override
   void dispose() {
     _year.dispose();
     _month.dispose();
     _day.dispose();
+    _yearFocus.dispose();
+    _monthFocus.dispose();
+    _dayFocus.dispose();
     super.dispose();
   }
 
@@ -56,7 +109,7 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
       currentStep: 2,
       totalSteps: 4,
       buttonLabel: 'Continue',
-      onContinue: _valid ? widget.onNext : null,
+      onContinue: _valid ? _onContinue : null,
       body: Column(
         children: [
           const OotHero(
@@ -76,9 +129,12 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
                 flex: 148,
                 child: _DateField(
                   controller: _year,
+                  focusNode: _yearFocus,
+                  nextFocusNode: _monthFocus,
+                  hintText: 'YYYY',
                   length: 4,
-                  focused: true,
-                  onChanged: () => setState(() {}),
+                  autofocus: true,
+                  onChanged: _onDateChanged,
                 ),
               ),
               SizedBox(width: 12.w),
@@ -86,8 +142,11 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
                 flex: 110,
                 child: _DateField(
                   controller: _month,
+                  focusNode: _monthFocus,
+                  nextFocusNode: _dayFocus,
+                  hintText: 'MM',
                   length: 2,
-                  onChanged: () => setState(() {}),
+                  onChanged: _onDateChanged,
                 ),
               ),
               SizedBox(width: 12.w),
@@ -95,70 +154,74 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
                 flex: 110,
                 child: _DateField(
                   controller: _day,
+                  focusNode: _dayFocus,
+                  hintText: 'DD',
                   length: 2,
-                  onChanged: () => setState(() {}),
+                  onChanged: _onDateChanged,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 10.h),
-          Container(
-            height: 88.h,
-            padding: EdgeInsets.all(14.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16.r),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Looks right?',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontSize: 13.sp,
-                          height: 18 / 13,
-                          fontWeight: FontWeight.w600,
+          if (_showConfirmation) ...[
+            SizedBox(height: 10.h),
+            Container(
+              height: 88.h,
+              padding: EdgeInsets.all(14.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Looks right?',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textPrimary,
+                            fontSize: 13.sp,
+                            height: 18 / 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        'February 15, 1997',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontSize: 12.sp,
-                          height: 16 / 12,
+                        SizedBox(height: 4.h),
+                        Text(
+                          _formattedBirthday,
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                            fontSize: 12.sp,
+                            height: 16 / 12,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  height: 32.h,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceMuted,
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  child: Text(
-                    'Age $_age',
-                    style: GoogleFonts.inter(
-                      color: AppColors.accent,
-                      fontSize: 11.sp,
-                      height: 15 / 11,
-                      fontWeight: FontWeight.w600,
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Container(
+                    height: 32.h,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceMuted,
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Text(
+                      'Age $_age',
+                      style: GoogleFonts.inter(
+                        color: AppColors.accent,
+                        fontSize: 11.sp,
+                        height: 15 / 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
           SizedBox(height: 10.h),
           Align(
             alignment: Alignment.centerLeft,
@@ -176,25 +239,40 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
 class _DateField extends StatelessWidget {
   const _DateField({
     required this.controller,
+    required this.focusNode,
+    required this.hintText,
     required this.length,
     required this.onChanged,
-    this.focused = false,
+    this.nextFocusNode,
+    this.autofocus = false,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
+  final FocusNode? nextFocusNode;
+  final String hintText;
   final int length;
   final VoidCallback onChanged;
-  final bool focused;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
+      autofocus: autofocus,
       keyboardType: TextInputType.number,
+      textInputAction: nextFocusNode == null
+          ? TextInputAction.done
+          : TextInputAction.next,
       textAlign: TextAlign.center,
       maxLength: length,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      onChanged: (_) => onChanged(),
+      onChanged: (value) {
+        onChanged();
+        if (value.length == length) nextFocusNode?.requestFocus();
+      },
+      onSubmitted: (_) => nextFocusNode?.requestFocus(),
       style: GoogleFonts.inter(
         color: AppColors.textPrimary,
         fontSize: 15.sp,
@@ -202,16 +280,20 @@ class _DateField extends StatelessWidget {
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: GoogleFonts.inter(
+          color: const Color(0xFF9A8880),
+          fontSize: 15.sp,
+          height: 20 / 15,
+          fontWeight: FontWeight.w500,
+        ),
         counterText: '',
         filled: true,
         fillColor: Colors.white,
         contentPadding: EdgeInsets.symmetric(vertical: 18.h),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),
-          borderSide: BorderSide(
-            color: focused ? AppColors.primary : AppColors.borderStrong,
-            width: focused ? 1.5.w : 1.w,
-          ),
+          borderSide: BorderSide(color: AppColors.borderStrong, width: 1.w),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),

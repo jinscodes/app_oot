@@ -13,7 +13,7 @@ class ConnectionTypeScreen extends StatefulWidget {
 }
 
 class _ConnectionTypeScreenState extends State<ConnectionTypeScreen> {
-  final Set<int> _selected = {1};
+  int? _selected;
   static const _options = [
     OotOptionData('Life partner'),
     OotOptionData('Long-term relationship'),
@@ -30,24 +30,22 @@ class _ConnectionTypeScreenState extends State<ConnectionTypeScreen> {
       currentStep: 2,
       totalSteps: 7,
       buttonLabel: 'Continue',
-      onContinue: _selected.isEmpty ? null : widget.onNext,
+      onContinue: _selected == null ? null : widget.onNext,
       body: Column(
         children: [
           const OotHero(
             eyebrow: 'What you’re looking for',
             title: 'What kind of connection?',
-            description: 'Choose all that feel right for you today.',
+            description: 'Choose the one that feels right for you today.',
           ),
           SizedBox(height: 34.h),
-          const OotSectionLabel('Choose all that apply'),
+          const OotSectionLabel('Choose one'),
           SizedBox(height: 8.h),
           for (var index = 0; index < _options.length; index++) ...[
             OotSelectOption(
               option: _options[index],
-              selected: _selected.contains(index),
-              onTap: () => setState(() {
-                if (!_selected.add(index)) _selected.remove(index);
-              }),
+              selected: _selected == index,
+              onTap: () => setState(() => _selected = index),
               height: 42,
               compact: true,
             ),

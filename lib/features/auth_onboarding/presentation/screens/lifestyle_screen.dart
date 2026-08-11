@@ -15,8 +15,8 @@ class LifestyleScreen extends StatefulWidget {
 }
 
 class _LifestyleScreenState extends State<LifestyleScreen> {
-  int _alcohol = 1;
-  int _smoking = 2;
+  int? _alcohol;
+  int? _smoking;
   bool _showAlcohol = true;
   bool _showSmoking = true;
 
@@ -27,7 +27,7 @@ class _LifestyleScreenState extends State<LifestyleScreen> {
       currentStep: 2,
       totalSteps: 5,
       buttonLabel: 'Continue',
-      onContinue: widget.onNext,
+      onContinue: _alcohol == null || _smoking == null ? null : widget.onNext,
       body: Column(
         children: [
           const OotHero(
@@ -40,6 +40,7 @@ class _LifestyleScreenState extends State<LifestyleScreen> {
           const OotSectionLabel('Your habits'),
           SizedBox(height: 10.h),
           _HabitCard(
+            selectionKey: 'alcohol',
             question: 'Do you drink alcohol?',
             selection: _alcohol,
             visible: _showAlcohol,
@@ -48,6 +49,7 @@ class _LifestyleScreenState extends State<LifestyleScreen> {
           ),
           SizedBox(height: 10.h),
           _HabitCard(
+            selectionKey: 'smoking',
             question: 'Do you smoke tobacco or vape?',
             selection: _smoking,
             visible: _showSmoking,
@@ -62,6 +64,7 @@ class _LifestyleScreenState extends State<LifestyleScreen> {
 
 class _HabitCard extends StatelessWidget {
   const _HabitCard({
+    required this.selectionKey,
     required this.question,
     required this.selection,
     required this.visible,
@@ -69,8 +72,9 @@ class _HabitCard extends StatelessWidget {
     required this.onVisibility,
   });
 
+  final String selectionKey;
   final String question;
-  final int selection;
+  final int? selection;
   final bool visible;
   final ValueChanged<int> onSelect;
   final ValueChanged<bool> onVisibility;
@@ -103,33 +107,39 @@ class _HabitCard extends StatelessWidget {
             children: [
               for (var index = 0; index < choices.length; index++) ...[
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () => onSelect(index),
-                    child: Container(
-                      height: 36.h,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: selection == index
-                            ? AppColors.surfaceSelected
-                            : AppColors.background,
-                        borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(
+                  child: Semantics(
+                    key: ValueKey('$selectionKey-option-$index'),
+                    button: true,
+                    selected: selection == index,
+                    inMutuallyExclusiveGroup: true,
+                    child: GestureDetector(
+                      onTap: () => onSelect(index),
+                      child: Container(
+                        height: 36.h,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
                           color: selection == index
-                              ? AppColors.accent
-                              : AppColors.border,
+                              ? AppColors.surfaceSelected
+                              : AppColors.background,
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: selection == index
+                                ? AppColors.accent
+                                : AppColors.border,
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        choices[index],
-                        style: GoogleFonts.inter(
-                          color: selection == index
-                              ? AppColors.textPrimary
-                              : const Color(0xFF6B5A53),
-                          fontSize: 12.sp,
-                          height: 18 / 12,
-                          fontWeight: selection == index
-                              ? FontWeight.w600
-                              : FontWeight.w500,
+                        child: Text(
+                          choices[index],
+                          style: GoogleFonts.inter(
+                            color: selection == index
+                                ? AppColors.textPrimary
+                                : const Color(0xFF6B5A53),
+                            fontSize: 12.sp,
+                            height: 18 / 12,
+                            fontWeight: selection == index
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),

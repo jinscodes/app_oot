@@ -20,9 +20,7 @@ import 'features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
 import 'features/auth_onboarding/presentation/screens/photo_screen.dart';
 import 'features/auth_onboarding/presentation/screens/phone_number_screen.dart';
-import 'features/auth_onboarding/presentation/screens/profile_prompt_screen.dart';
 import 'features/auth_onboarding/presentation/screens/religious_screen.dart';
-import 'features/auth_onboarding/presentation/screens/key_details_screen.dart';
 import 'features/auth_onboarding/presentation/screens/splash_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 import 'features/auth_onboarding/presentation/screens/want_children_screen.dart';
@@ -284,24 +282,7 @@ class MyApp extends StatelessWidget {
   void _openLifestyle(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => LifestyleScreen(onNext: () => _openKeyDetails(context)),
-      ),
-    );
-  }
-
-  void _openKeyDetails(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) =>
-            KeyDetailsScreen(onNext: () => _openProfilePrompt(context)),
-      ),
-    );
-  }
-
-  void _openProfilePrompt(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ProfilePromptScreen(onNext: () => _openPhotos(context)),
+        builder: (_) => LifestyleScreen(onNext: () => _openPhotos(context)),
       ),
     );
   }

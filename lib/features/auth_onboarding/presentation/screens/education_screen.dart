@@ -15,9 +15,14 @@ class EducationScreen extends StatefulWidget {
 }
 
 class _EducationScreenState extends State<EducationScreen> {
-  final TextEditingController _school = TextEditingController(
-    text: 'Seoul National University',
-  );
+  static const _countries = <String, String>{
+    'KR': '🇰🇷',
+    'JP': '🇯🇵',
+    'US': '🇺🇸',
+  };
+
+  final TextEditingController _school = TextEditingController();
+  String _countryCode = 'KR';
   bool _visible = true;
 
   @override
@@ -68,20 +73,57 @@ class _EducationScreenState extends State<EducationScreen> {
                 SizedBox(height: 12.h),
                 Row(
                   children: [
-                    Container(
-                      width: 88.w,
-                      height: 52.h,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F3EF),
+                    PopupMenuButton<String>(
+                      key: const ValueKey('education-country-selector'),
+                      initialValue: _countryCode,
+                      tooltip: 'Select school country',
+                      offset: Offset(0, 52.h),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14.r),
                       ),
-                      child: Text(
-                        '🇰🇷  KR',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
+                      onSelected: (countryCode) =>
+                          setState(() => _countryCode = countryCode),
+                      itemBuilder: (context) => _countries.entries
+                          .map(
+                            (country) => PopupMenuItem<String>(
+                              value: country.key,
+                              child: Text(
+                                '${country.value}  ${country.key}',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      child: Container(
+                        width: 100.w,
+                        height: 52.h,
+                        padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F3EF),
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${_countries[_countryCode]}  $_countryCode',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 18.sp,
+                              color: AppColors.textMuted,
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -104,6 +146,13 @@ class _EducationScreenState extends State<EducationScreen> {
                           ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
+                            hintText: 'Ex) Seoul National University',
+                            hintStyle: GoogleFonts.inter(
+                              color: const Color(0xFF9A8880),
+                              fontSize: 13.sp,
+                              height: 20 / 13,
+                              fontWeight: FontWeight.w400,
+                            ),
                             prefixIcon: Icon(
                               Icons.school_outlined,
                               size: 18.sp,

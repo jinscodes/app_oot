@@ -47,7 +47,7 @@ class _NameScreenState extends State<NameScreen> {
           SizedBox(height: 8.h),
           OotTextField(
             controller: _first,
-            hintText: 'Jiyoon',
+            hintText: 'Ex) Jay',
             autofocus: true,
             focused: true,
             onChanged: (value) =>
@@ -59,7 +59,7 @@ class _NameScreenState extends State<NameScreen> {
             child: OotFieldLabel('Last name · Optional'),
           ),
           SizedBox(height: 8.h),
-          OotTextField(controller: _last, hintText: 'Kim'),
+          OotTextField(controller: _last, hintText: 'EX) Han'),
           SizedBox(height: 10.h),
           Align(
             alignment: Alignment.centerLeft,

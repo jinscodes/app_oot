@@ -18,7 +18,6 @@ class GenderScreen extends StatelessWidget {
       description: 'Choose the option that best describes you.',
       sectionLabel: 'Select one',
       options: const [OotOptionData('Man'), OotOptionData('Woman')],
-      initialSelection: 1,
       showSelectedBadge: true,
       helperText: 'You can update this later in settings.',
       onContinue: onNext,

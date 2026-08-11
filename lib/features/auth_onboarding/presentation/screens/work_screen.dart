@@ -15,10 +15,8 @@ class WorkScreen extends StatefulWidget {
 }
 
 class _WorkScreenState extends State<WorkScreen> {
-  final TextEditingController _company = TextEditingController(text: 'OpenAI');
-  final TextEditingController _role = TextEditingController(
-    text: 'Product Designer',
-  );
+  final TextEditingController _company = TextEditingController();
+  final TextEditingController _role = TextEditingController();
   bool _visible = true;
 
   @override
@@ -47,7 +45,7 @@ class _WorkScreenState extends State<WorkScreen> {
           const OotSectionLabel('Work'),
           SizedBox(height: 10.h),
           Container(
-            height: 220.h,
+            height: 178.h,
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -57,14 +55,18 @@ class _WorkScreenState extends State<WorkScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _label('Where do you work?'),
-                SizedBox(height: 8.h),
-                _workField(_company, Icons.work_outline_rounded),
-                SizedBox(height: 8.h),
-                _label('What’s your job title?'),
-                SizedBox(height: 8.h),
-                _workField(_role, Icons.person_outline_rounded),
-                SizedBox(height: 8.h),
+                _workField(
+                  _company,
+                  Icons.work_outline_rounded,
+                  'Where do you work?',
+                ),
+                SizedBox(height: 10.h),
+                _workField(
+                  _role,
+                  Icons.person_outline_rounded,
+                  'What’s your job title?',
+                ),
+                SizedBox(height: 12.h),
                 Row(
                   children: [
                     Expanded(
@@ -100,17 +102,11 @@ class _WorkScreenState extends State<WorkScreen> {
     );
   }
 
-  Widget _label(String value) => Text(
-    value,
-    style: GoogleFonts.inter(
-      color: const Color(0xFF6B5A53),
-      fontSize: 12.sp,
-      height: 16 / 12,
-      fontWeight: FontWeight.w600,
-    ),
-  );
-
-  Widget _workField(TextEditingController controller, IconData icon) {
+  Widget _workField(
+    TextEditingController controller,
+    IconData icon,
+    String hintText,
+  ) {
     return Container(
       height: 48.h,
       decoration: BoxDecoration(
@@ -128,6 +124,13 @@ class _WorkScreenState extends State<WorkScreen> {
         ),
         decoration: InputDecoration(
           border: InputBorder.none,
+          hintText: hintText,
+          hintStyle: GoogleFonts.inter(
+            color: const Color(0xFF9A8880),
+            fontSize: 14.sp,
+            height: 20 / 14,
+            fontWeight: FontWeight.w400,
+          ),
           prefixIcon: Icon(icon, size: 18.sp, color: AppColors.textMuted),
           contentPadding: EdgeInsets.symmetric(vertical: 14.h),
         ),

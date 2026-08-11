@@ -25,7 +25,6 @@ class WantChildrenScreen extends StatelessWidget {
           caption: 'May narrow compatible match suggestions',
         ),
       ],
-      initialSelection: 1,
       showVisibility: true,
       onContinue: onNext,
     );

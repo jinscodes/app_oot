@@ -24,7 +24,7 @@ class _ReligiousScreenState extends State<ReligiousScreen> {
     'Muslim',
     'Sikh',
   ];
-  int _selected = 0;
+  int? _selected;
   bool _visible = true;
 
   @override
@@ -34,7 +34,7 @@ class _ReligiousScreenState extends State<ReligiousScreen> {
       currentStep: 1,
       totalSteps: 5,
       buttonLabel: 'Continue',
-      onContinue: widget.onNext,
+      onContinue: _selected == null ? null : widget.onNext,
       body: Column(
         children: [
           const OotHero(

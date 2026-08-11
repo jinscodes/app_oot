@@ -25,7 +25,6 @@ class ChildrenScreen extends StatelessWidget {
           caption: 'Keeps this detail private',
         ),
       ],
-      initialSelection: 0,
       showVisibility: true,
       onContinue: onNext,
     );

@@ -7,14 +7,12 @@ import 'package:app_oot/features/auth_onboarding/presentation/screens/education_
 import 'package:app_oot/features/auth_onboarding/presentation/screens/email_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/gender_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/height_screen.dart';
-import 'package:app_oot/features/auth_onboarding/presentation/screens/key_details_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/lifestyle_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/location_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/name_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/onboarding_prompt_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/photo_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/phone_number_screen.dart';
-import 'package:app_oot/features/auth_onboarding/presentation/screens/profile_prompt_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/religious_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/want_children_screen.dart';
@@ -127,7 +125,7 @@ void main() {
         imageAsset: 'assets/images/profile_onboarding2.png',
         title: 'Where should we look?',
       ),
-      const LocationScreen(),
+      const LocationScreen(loadMapTiles: false),
       const ConnectionTypeScreen(),
       const EducationScreen(),
       const EducationLevelScreen(),
@@ -140,8 +138,6 @@ void main() {
       ),
       const ReligiousScreen(),
       const LifestyleScreen(),
-      const KeyDetailsScreen(),
-      const ProfilePromptScreen(),
       const PhotoScreen(),
     ];
 

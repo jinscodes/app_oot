@@ -648,7 +648,7 @@ class OotSingleChoiceScreen extends StatefulWidget {
     required this.sectionLabel,
     required this.options,
     required this.onContinue,
-    this.initialSelection = 0,
+    this.initialSelection,
     this.optionHeight = 58,
     this.compactOptions = false,
     this.showSelectedBadge = false,
@@ -805,6 +805,7 @@ class OotStoryIntroScreen extends StatelessWidget {
                     child: Center(
                       child: Container(
                         height: 30.h,
+                        width: 180,
                         padding: EdgeInsets.symmetric(horizontal: 18.w),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(

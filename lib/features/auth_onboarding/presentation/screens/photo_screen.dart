@@ -33,6 +33,7 @@ class PhotoScreen extends StatefulWidget {
 class _PhotoScreenState extends State<PhotoScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   final Map<int, Uint8List> _photos = {};
+  final Map<int, String> _comments = {};
   int? _pickingSlot;
 
   Future<XFile?> _pickOneFromGallery() {
@@ -126,7 +127,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
         }
       }
       if (!mounted) return;
-      setState(() => _photos.addAll(loadedPhotos));
+      setState(() {
+        _photos.addAll(loadedPhotos);
+        if (replacingPhoto && loadedPhotos.containsKey(index)) {
+          _comments.remove(index);
+        }
+      });
       if (unreadablePhotoFound) {
         _showMessage(
           'Some photos could not be read. Try JPEG or PNG files instead.',
@@ -193,6 +199,30 @@ class _PhotoScreenState extends State<PhotoScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _openCommentEditor(int index) async {
+    final photo = _photos[index];
+    if (photo == null) return;
+    final comment = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: const Color(0x4D2D1E1A),
+      builder: (_) => _PhotoCommentSheet(
+        photo: photo,
+        initialComment: _comments[index] ?? '',
+      ),
+    );
+    if (!mounted || comment == null) return;
+    final trimmedComment = comment.trim();
+    setState(() {
+      if (trimmedComment.isEmpty) {
+        _comments.remove(index);
+      } else {
+        _comments[index] = trimmedComment;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return OotOnboardingScaffold(
@@ -200,7 +230,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       currentStep: 5,
       totalSteps: 5,
       buttonLabel: 'Finish setup',
-      onContinue: widget.onNext,
+      onContinue: _photos.containsKey(0) ? widget.onNext : null,
       body: Column(
         children: [
           const OotHero(
@@ -236,6 +266,14 @@ class _PhotoScreenState extends State<PhotoScreen> {
             ),
             if (row != 2) SizedBox(height: 10.h),
           ],
+          SizedBox(height: 10.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Tap a photo to add an optional comment.',
+              style: ootHelperStyle(),
+            ),
+          ),
         ],
       ),
     );
@@ -244,6 +282,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   Widget _slot(int index) {
     final main = index == 0;
     final photo = _photos[index];
+    final comment = _comments[index];
     final picking = _pickingSlot == index;
     return Semantics(
       button: true,
@@ -251,9 +290,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
           ? main
                 ? 'Add main photo from gallery'
                 : 'Add photo from gallery'
-          : 'Replace photo from gallery',
+          : comment == null
+          ? 'Add an optional comment to this photo'
+          : 'Edit this photo comment',
       child: GestureDetector(
-        onTap: () => _selectPhotos(index),
+        onTap: () =>
+            photo == null ? _selectPhotos(index) : _openCommentEditor(index),
         child: Container(
           key: ValueKey('photo-slot-$index'),
           height: 112.h,
@@ -283,27 +325,64 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       fit: BoxFit.cover,
                       gaplessPlayback: true,
                     ),
+                    if (comment != null)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          key: ValueKey('photo-comment-$index'),
+                          padding: EdgeInsets.fromLTRB(10.w, 20.h, 10.w, 8.h),
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Color(0xCC211713)],
+                            ),
+                          ),
+                          child: Text(
+                            comment,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 10.sp,
+                              height: 14 / 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
                     Positioned(
                       top: 8.h,
                       right: 8.w,
-                      child: Container(
-                        width: 28.w,
-                        height: 28.w,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: .58),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.edit_rounded,
-                          size: 15.sp,
-                          color: Colors.white,
+                      child: Semantics(
+                        button: true,
+                        label: 'Replace photo',
+                        child: GestureDetector(
+                          key: ValueKey('replace-photo-$index'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _selectPhotos(index),
+                          child: Container(
+                            width: 28.w,
+                            height: 28.w,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: .58),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.edit_rounded,
+                              size: 15.sp,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                     if (main)
                       Positioned(
                         left: 8.w,
-                        bottom: 8.h,
+                        top: 8.h,
                         child: Container(
                           height: 24.h,
                           padding: EdgeInsets.symmetric(horizontal: 10.w),
@@ -322,8 +401,186 @@ class _PhotoScreenState extends State<PhotoScreen> {
                           ),
                         ),
                       ),
+                    if (comment == null)
+                      Positioned(
+                        right: 8.w,
+                        bottom: 8.h,
+                        child: Container(
+                          width: 28.w,
+                          height: 28.w,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: .58),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 14.sp,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoCommentSheet extends StatefulWidget {
+  const _PhotoCommentSheet({required this.photo, required this.initialComment});
+
+  final Uint8List photo;
+  final String initialComment;
+
+  @override
+  State<_PhotoCommentSheet> createState() => _PhotoCommentSheetState();
+}
+
+class _PhotoCommentSheetState extends State<_PhotoCommentSheet> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initialComment,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(24.w, 10.h, 24.w, 24.h),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD9CBC5),
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 18.h),
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14.r),
+                      child: Image.memory(
+                        widget.photo,
+                        width: 64.w,
+                        height: 64.w,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(width: 14.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.initialComment.isEmpty
+                                ? 'Add a photo comment'
+                                : 'Edit photo comment',
+                            style: GoogleFonts.cormorant(
+                              color: AppColors.textPrimary,
+                              fontSize: 26.sp,
+                              height: 30 / 26,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            'Optional · 120 characters maximum',
+                            style: GoogleFonts.inter(
+                              color: AppColors.textMuted,
+                              fontSize: 11.sp,
+                              height: 16 / 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 18.h),
+                TextField(
+                  key: const ValueKey('photo-comment-field'),
+                  controller: _controller,
+                  autofocus: true,
+                  maxLength: 120,
+                  minLines: 3,
+                  maxLines: 4,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: GoogleFonts.inter(
+                    color: AppColors.textPrimary,
+                    fontSize: 14.sp,
+                    height: 20 / 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Share the story behind this photo…',
+                    hintStyle: GoogleFonts.inter(
+                      color: const Color(0xFF9A8880),
+                      fontSize: 14.sp,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                      borderSide: BorderSide(color: AppColors.borderStrong),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                      borderSide: BorderSide(color: AppColors.borderStrong),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                      borderSide: BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5.w,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                FilledButton(
+                  key: const ValueKey('save-photo-comment'),
+                  onPressed: () => Navigator.of(context).pop(_controller.text),
+                  style: FilledButton.styleFrom(
+                    minimumSize: Size.fromHeight(54.h),
+                    backgroundColor: AppColors.accent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                  ),
+                  child: Text(
+                    'Save comment',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:app_oot/features/auth_onboarding/presentation/screens/all_set_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/birthday_screen.dart';
 import 'package:app_oot/features/auth_onboarding/presentation/screens/children_screen.dart';
@@ -139,6 +140,7 @@ void main() {
       const ReligiousScreen(),
       const LifestyleScreen(),
       const PhotoScreen(),
+      const AllSetScreen(),
     ];
 
     final currentScreen = ValueNotifier<Widget>(screens.first);

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_colors.dart';
 import 'features/auth_onboarding/data/email_verification_service.dart';
 import 'features/auth_onboarding/data/verification_service.dart';
+import 'features/auth_onboarding/presentation/screens/all_set_screen.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/birthday_screen.dart';
 import 'features/auth_onboarding/presentation/screens/children_screen.dart';
@@ -25,6 +26,9 @@ import 'features/auth_onboarding/presentation/screens/splash_screen.dart';
 import 'features/auth_onboarding/presentation/screens/verification_code_screen.dart';
 import 'features/auth_onboarding/presentation/screens/want_children_screen.dart';
 import 'features/auth_onboarding/presentation/screens/work_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
+
+export 'features/home/presentation/screens/home_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -290,46 +294,26 @@ class MyApp extends StatelessWidget {
   void _openPhotos(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PhotoScreen(onNext: () => _openHome(context)),
+        builder: (innerContext) =>
+            PhotoScreen(onNext: () => _openAllSet(innerContext)),
       ),
     );
   }
-}
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/images/talking_logo.png',
-              width: 96,
-              height: 82,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'You’re all set',
-              style: GoogleFonts.cormorant(
-                color: AppColors.textPrimary,
-                fontSize: 38,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your thoughtful introductions are ready.',
-              style: GoogleFonts.inter(color: AppColors.textSecondary),
-            ),
-          ],
+  void _openAllSet(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (innerContext) => AllSetScreen(
+          onStartExploring: () => _openHomeAndClear(innerContext),
         ),
       ),
+    );
+  }
+
+  void _openHomeAndClear(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      (route) => false,
     );
   }
 }

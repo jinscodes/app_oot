@@ -15,13 +15,15 @@ class VerificationCodeScreen extends StatefulWidget {
     required this.initialCode,
     required this.onVerify,
     required this.onResend,
+    this.resendAfterSeconds = 30,
     this.onNext,
   });
 
   final String sentTo;
   final String? initialCode;
-  final bool Function(String code) onVerify;
-  final String? Function() onResend;
+  final FutureOr<bool> Function(String code) onVerify;
+  final FutureOr<String?> Function() onResend;
+  final int resendAfterSeconds;
   final VoidCallback? onNext;
 
   @override
@@ -34,9 +36,16 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   Timer? _timer;
   int _seconds = 30;
   bool _hasError = false;
+  bool _submitting = false;
+  bool _resending = false;
 
   bool get _isEmail => widget.sentTo.contains('@');
   bool get _isComplete => _controller.text.length == 6;
+  String get _countdown {
+    final minutes = (_seconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_seconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
 
   @override
   void initState() {
@@ -55,7 +64,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
 
   void _startTimer() {
     _timer?.cancel();
-    _seconds = 30;
+    _seconds = widget.resendAfterSeconds;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted || _seconds <= 0) {
         timer.cancel();
@@ -82,20 +91,45 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     });
   }
 
-  void _verify() {
-    if (widget.onVerify(_controller.text)) {
-      widget.onNext?.call();
-    } else {
+  Future<void> _verify() async {
+    if (_submitting) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _submitting = true);
+    try {
+      if (await widget.onVerify(_controller.text)) {
+        widget.onNext?.call();
+        return;
+      }
       HapticFeedback.heavyImpact();
       setState(() => _hasError = true);
+    } catch (error) {
+      if (!mounted) return;
+      HapticFeedback.heavyImpact();
+      setState(() => _hasError = true);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
-  void _resend() {
-    final code = widget.onResend();
-    if (code == null) return;
-    _startTimer();
-    _showDevCode(code);
+  Future<void> _resend() async {
+    if (_resending) return;
+    setState(() => _resending = true);
+    try {
+      final code = await widget.onResend();
+      if (code == null) return;
+      _startTimer();
+      _showDevCode(code.isEmpty ? null : code);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _resending = false);
+    }
   }
 
   @override
@@ -107,8 +141,12 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       progressLabel: _isEmail ? 'Verify email' : 'Verify number',
       currentStep: _isEmail ? 5 : 3,
       totalSteps: 6,
-      buttonLabel: _isEmail ? 'Verify email' : 'Verify',
-      onContinue: _isComplete ? _verify : null,
+      buttonLabel: _submitting
+          ? 'Verifying...'
+          : _isEmail
+          ? 'Verify email'
+          : 'Verify',
+      onContinue: _isComplete && !_submitting ? _verify : null,
       body: Column(
         children: [
           OotHero(
@@ -163,13 +201,13 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${_isEmail ? 'Code expires' : 'Code sent'} · 00:${_seconds.toString().padLeft(2, '0')}',
+                '${_isEmail ? 'Code expires' : 'Code sent'} · $_countdown',
                 style: ootHelperStyle(),
               ),
               GestureDetector(
-                onTap: _seconds == 0 ? _resend : null,
+                onTap: _seconds == 0 && !_resending ? _resend : null,
                 child: Text(
-                  'Resend code',
+                  _resending ? 'Sending...' : 'Resend code',
                   style: GoogleFonts.inter(
                     color: _seconds == 0
                         ? AppColors.accent

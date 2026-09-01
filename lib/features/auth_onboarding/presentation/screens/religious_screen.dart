@@ -4,9 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/oot_design_system.dart';
 
 class ReligiousScreen extends StatefulWidget {
-  const ReligiousScreen({super.key, this.onNext});
+  const ReligiousScreen({super.key, this.onNext, this.onSelected});
 
   final VoidCallback? onNext;
+  final ValueChanged<String>? onSelected;
 
   @override
   State<ReligiousScreen> createState() => _ReligiousScreenState();
@@ -71,7 +72,10 @@ class _ReligiousScreenState extends State<ReligiousScreen> {
   Widget _option(int index) => OotSelectOption(
     option: OotOptionData(_options[index]),
     selected: _selected == index,
-    onTap: () => setState(() => _selected = index),
+    onTap: () {
+      setState(() => _selected = index);
+      widget.onSelected?.call(_options[index]);
+    },
     height: 42,
     compact: true,
     showControl: _selected == index,

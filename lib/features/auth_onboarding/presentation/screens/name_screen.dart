@@ -4,9 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/oot_design_system.dart';
 
 class NameScreen extends StatefulWidget {
-  const NameScreen({super.key, this.onNext});
+  const NameScreen({super.key, this.onNext, this.onChanged});
 
   final VoidCallback? onNext;
+  final ValueChanged<Map<String, String>>? onChanged;
 
   @override
   State<NameScreen> createState() => _NameScreenState();
@@ -50,8 +51,13 @@ class _NameScreenState extends State<NameScreen> {
             hintText: 'Ex) Jay',
             autofocus: true,
             focused: true,
-            onChanged: (value) =>
-                setState(() => _valid = value.trim().isNotEmpty),
+            onChanged: (value) {
+              setState(() => _valid = value.trim().isNotEmpty);
+              widget.onChanged?.call({
+                'firstName': value.trim(),
+                'lastName': _last.text.trim(),
+              });
+            },
           ),
           SizedBox(height: 10.h),
           const Align(
@@ -59,7 +65,14 @@ class _NameScreenState extends State<NameScreen> {
             child: OotFieldLabel('Last name · Optional'),
           ),
           SizedBox(height: 8.h),
-          OotTextField(controller: _last, hintText: 'EX) Han'),
+          OotTextField(
+            controller: _last,
+            hintText: 'EX) Han',
+            onChanged: (value) => widget.onChanged?.call({
+              'firstName': _first.text.trim(),
+              'lastName': value.trim(),
+            }),
+          ),
           SizedBox(height: 10.h),
           Align(
             alignment: Alignment.centerLeft,

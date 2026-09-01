@@ -3,8 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'core/constants/app_colors.dart';
+import 'features/auth_onboarding/data/auth_models.dart';
+import 'features/auth_onboarding/data/auth_session_controller.dart';
+import 'features/auth_onboarding/data/onboarding_profile_draft.dart';
 import 'features/auth_onboarding/data/email_verification_service.dart';
-import 'features/auth_onboarding/data/verification_service.dart';
 import 'features/auth_onboarding/presentation/screens/all_set_screen.dart';
 import 'features/auth_onboarding/presentation/screens/auth_landing_screen.dart';
 import 'features/auth_onboarding/presentation/screens/birthday_screen.dart';
@@ -35,8 +37,25 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key, this.authController});
+
+  final AuthSessionController? authController;
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final AuthSessionController _authController;
+  final _draft = OnboardingProfileDraft();
+
+  @override
+  void initState() {
+    super.initState();
+    _authController =
+        widget.authController ?? AuthSessionController.development();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,57 +77,117 @@ class MyApp extends StatelessWidget {
         ),
         home: Builder(
           builder: (context) =>
-              SplashScreen(onComplete: () => _openLanding(context)),
+              SplashScreen(onComplete: () => _restoreSessionAndOpen(context)),
         ),
       ),
     );
+  }
+
+  Future<void> _restoreSessionAndOpen(BuildContext context) async {
+    final restored = await _authController.restoreSession();
+    if (!context.mounted) return;
+    if (restored) {
+      _openHome(context);
+    } else {
+      _openLanding(context);
+    }
   }
 
   void _openLanding(BuildContext context) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (innerContext) => AuthLandingScreen(
-          onCreateAccount: () => _openPhoneNumber(innerContext),
-          onSignIn: () => _openHome(innerContext),
+          onCreateAccount: () =>
+              _openPhoneNumber(innerContext, isSignIn: false),
+          onSignIn: () => _openPhoneNumber(innerContext, isSignIn: true),
         ),
       ),
     );
   }
 
   void _openHome(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const HomeScreen()));
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (homeContext) =>
+            HomeScreen(onLogout: () => _logout(homeContext)),
+      ),
+      (route) => false,
+    );
   }
 
-  void _openPhoneNumber(BuildContext context) {
+  Future<void> _logout(BuildContext context) async {
+    await _authController.logout();
+    if (!context.mounted) return;
+    _openLanding(context);
+  }
+
+  void _openPhoneNumber(BuildContext context, {required bool isSignIn}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PhoneNumberScreen(
-          onNext: (phone) {
-            VerificationService.sendCode(phone);
-            _openVerification(context);
+        builder: (phoneContext) => PhoneNumberScreen(
+          onNext: (phone) async {
+            final challenge = await _authController.requestPhoneOtp(phone);
+            if (!phoneContext.mounted) return;
+            _openVerification(
+              phoneContext,
+              phone: phone,
+              challenge: challenge,
+              isSignIn: isSignIn,
+            );
           },
         ),
       ),
     );
   }
 
-  void _openVerification(BuildContext context) {
+  void _openVerification(
+    BuildContext context, {
+    required String phone,
+    required OtpChallenge challenge,
+    required bool isSignIn,
+  }) {
+    var currentChallenge = challenge;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => VerificationCodeScreen(
-          sentTo: VerificationService.pendingPhone ?? '',
-          initialCode: VerificationService.pendingCode,
-          onVerify: VerificationService.verify,
-          onResend: () {
-            final phone = VerificationService.pendingPhone;
-            if (phone == null) return null;
-            return VerificationService.sendCode(phone);
+        builder: (verificationContext) => VerificationCodeScreen(
+          sentTo: phone,
+          initialCode: null,
+          resendAfterSeconds: challenge.resendAfterSeconds,
+          onVerify: (code) async {
+            await _authController.verifyPhoneOtp(
+              challengeId: currentChallenge.id,
+              code: code,
+            );
+            return true;
           },
-          onNext: () => _openEmail(context),
+          onResend: () async {
+            currentChallenge = await _authController.requestPhoneOtp(phone);
+            return '';
+          },
+          onNext: () {
+            if (isSignIn) {
+              _openHome(verificationContext);
+            } else {
+              _openEmailAfterAuthentication(verificationContext);
+            }
+          },
         ),
       ),
+    );
+  }
+
+  void _openEmailAfterAuthentication(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (emailContext) => EmailScreen(
+          onNext: (email) {
+            _draft.email = email;
+            EmailVerificationService.sendCode(email);
+            _openEmailVerification(emailContext);
+          },
+        ),
+      ),
+      (route) => false,
     );
   }
 
@@ -128,19 +207,12 @@ class MyApp extends StatelessWidget {
   void _openName(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => NameScreen(onNext: () => _openBirthday(context)),
-      ),
-    );
-  }
-
-  void _openEmail(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => EmailScreen(
-          onNext: (email) {
-            EmailVerificationService.sendCode(email);
-            _openEmailVerification(context);
+        builder: (_) => NameScreen(
+          onChanged: (value) {
+            _draft.firstName = value['firstName'];
+            _draft.lastName = value['lastName'];
           },
+          onNext: () => _openBirthday(context),
         ),
       ),
     );
@@ -167,7 +239,10 @@ class MyApp extends StatelessWidget {
   void _openBirthday(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BirthdayScreen(onNext: () => _openGender(context)),
+        builder: (_) => BirthdayScreen(
+          onChanged: (value) => _draft.birthDate = value,
+          onNext: () => _openGender(context),
+        ),
       ),
     );
   }
@@ -188,8 +263,16 @@ class MyApp extends StatelessWidget {
   void _openLocation(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            LocationScreen(onNext: () => _openConnectionType(context)),
+        builder: (_) => LocationScreen(
+          onSelected: (value) {
+            _draft.countryCode = value.countryCode.toUpperCase();
+            _draft.locationName = value.displayName;
+            _draft.city = value.primaryName;
+            _draft.latitude = value.latitude;
+            _draft.longitude = value.longitude;
+          },
+          onNext: () => _openConnectionType(context),
+        ),
       ),
     );
   }
@@ -197,7 +280,10 @@ class MyApp extends StatelessWidget {
   void _openGender(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => GenderScreen(onNext: () => _openHeight(context)),
+        builder: (_) => GenderScreen(
+          onSelected: (value) => _draft.gender = value,
+          onNext: () => _openHeight(context),
+        ),
       ),
     );
   }
@@ -205,7 +291,10 @@ class MyApp extends StatelessWidget {
   void _openHeight(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => HeightScreen(onNext: () => _openMeetPrompt(context)),
+        builder: (_) => HeightScreen(
+          onChanged: (value) => _draft.heightCm = value,
+          onNext: () => _openMeetPrompt(context),
+        ),
       ),
     );
   }
@@ -213,8 +302,10 @@ class MyApp extends StatelessWidget {
   void _openConnectionType(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            ConnectionTypeScreen(onNext: () => _openEducation(context)),
+        builder: (_) => ConnectionTypeScreen(
+          onSelected: (value) => _draft.connectionType = value,
+          onNext: () => _openEducation(context),
+        ),
       ),
     );
   }
@@ -222,8 +313,13 @@ class MyApp extends StatelessWidget {
   void _openEducation(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            EducationScreen(onNext: () => _openEducationLevel(context)),
+        builder: (_) => EducationScreen(
+          onChanged: (value) {
+            _draft.educationCountry = value['countryCode'];
+            _draft.university = value['university'];
+          },
+          onNext: () => _openEducationLevel(context),
+        ),
       ),
     );
   }
@@ -231,7 +327,10 @@ class MyApp extends StatelessWidget {
   void _openEducationLevel(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => EducationLevelScreen(onNext: () => _openWork(context)),
+        builder: (_) => EducationLevelScreen(
+          onSelected: (value) => _draft.educationLevel = value,
+          onNext: () => _openWork(context),
+        ),
       ),
     );
   }
@@ -239,7 +338,13 @@ class MyApp extends StatelessWidget {
   void _openWork(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => WorkScreen(onNext: () => _openChildren(context)),
+        builder: (_) => WorkScreen(
+          onChanged: (value) {
+            _draft.company = value['company'];
+            _draft.jobTitle = value['jobTitle'];
+          },
+          onNext: () => _openChildren(context),
+        ),
       ),
     );
   }
@@ -247,8 +352,10 @@ class MyApp extends StatelessWidget {
   void _openChildren(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            ChildrenScreen(onNext: () => _openWantChildren(context)),
+        builder: (_) => ChildrenScreen(
+          onSelected: (value) => _draft.children = value,
+          onNext: () => _openWantChildren(context),
+        ),
       ),
     );
   }
@@ -256,8 +363,10 @@ class MyApp extends StatelessWidget {
   void _openWantChildren(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            WantChildrenScreen(onNext: () => _openValuesPrompt(context)),
+        builder: (_) => WantChildrenScreen(
+          onSelected: (value) => _draft.wantsChildren = value,
+          onNext: () => _openValuesPrompt(context),
+        ),
       ),
     );
   }
@@ -278,7 +387,10 @@ class MyApp extends StatelessWidget {
   void _openReligious(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ReligiousScreen(onNext: () => _openLifestyle(context)),
+        builder: (_) => ReligiousScreen(
+          onSelected: (value) => _draft.religion = value,
+          onNext: () => _openLifestyle(context),
+        ),
       ),
     );
   }
@@ -286,7 +398,13 @@ class MyApp extends StatelessWidget {
   void _openLifestyle(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => LifestyleScreen(onNext: () => _openPhotos(context)),
+        builder: (_) => LifestyleScreen(
+          onChanged: (value) {
+            _draft.alcohol = value['alcohol'];
+            _draft.smoking = value['smoking'];
+          },
+          onNext: () => _openPhotos(context),
+        ),
       ),
     );
   }
@@ -294,8 +412,10 @@ class MyApp extends StatelessWidget {
   void _openPhotos(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (innerContext) =>
-            PhotoScreen(onNext: () => _openAllSet(innerContext)),
+        builder: (innerContext) => PhotoScreen(
+          onChanged: (value) => _draft.photos = value,
+          onNext: () => _openAllSet(innerContext),
+        ),
       ),
     );
   }
@@ -304,16 +424,19 @@ class MyApp extends StatelessWidget {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (innerContext) => AllSetScreen(
-          onStartExploring: () => _openHomeAndClear(innerContext),
+          onStartExploring: () => _completeProfileAndOpenHome(innerContext),
         ),
       ),
     );
   }
 
   void _openHomeAndClear(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-      (route) => false,
-    );
+    _openHome(context);
+  }
+
+  Future<void> _completeProfileAndOpenHome(BuildContext context) async {
+    await _authController.saveProfile(_draft.toJson());
+    await _authController.completeOnboarding();
+    if (context.mounted) _openHomeAndClear(context);
   }
 }

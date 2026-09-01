@@ -17,12 +17,14 @@ class LocationScreen extends StatefulWidget {
     this.searchService,
     this.deviceLocationService,
     this.loadMapTiles = true,
+    this.onSelected,
   });
 
   final VoidCallback? onNext;
   final LocationSearchService? searchService;
   final DeviceLocationService? deviceLocationService;
   final bool loadMapTiles;
+  final ValueChanged<LocationAddress>? onSelected;
 
   @override
   State<LocationScreen> createState() => _LocationScreenState();
@@ -179,6 +181,7 @@ class _LocationScreenState extends State<LocationScreen> {
     );
     setState(() {
       _selectedAddress = address;
+      widget.onSelected?.call(address);
       _results = const [];
       _resultQuery = '';
       _errorMessage = null;

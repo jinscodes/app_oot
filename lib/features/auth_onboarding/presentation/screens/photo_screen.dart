@@ -11,6 +11,7 @@ import '../widgets/oot_design_system.dart';
 typedef GalleryPhotoPicker = Future<XFile?> Function();
 typedef MultiGalleryPhotoPicker = Future<List<XFile>> Function(int limit);
 typedef AppSettingsOpener = Future<void> Function();
+typedef PhotoMetadataChanged = void Function(List<Map<String, dynamic>> photos);
 
 class PhotoScreen extends StatefulWidget {
   const PhotoScreen({
@@ -19,12 +20,14 @@ class PhotoScreen extends StatefulWidget {
     this.photoPicker,
     this.multiPhotoPicker,
     this.openAppSettings,
+    this.onChanged,
   });
 
   final VoidCallback? onNext;
   final GalleryPhotoPicker? photoPicker;
   final MultiGalleryPhotoPicker? multiPhotoPicker;
   final AppSettingsOpener? openAppSettings;
+  final PhotoMetadataChanged? onChanged;
 
   @override
   State<PhotoScreen> createState() => _PhotoScreenState();
@@ -230,7 +233,16 @@ class _PhotoScreenState extends State<PhotoScreen> {
       currentStep: 5,
       totalSteps: 5,
       buttonLabel: 'Finish setup',
-      onContinue: _photos.containsKey(0) ? widget.onNext : null,
+      onContinue: _photos.containsKey(0)
+          ? () {
+              widget.onChanged?.call(
+                _photos.keys
+                    .map((slot) => {'slot': slot, 'comment': _comments[slot] ?? ''})
+                    .toList(),
+              );
+              widget.onNext?.call();
+            }
+          : null,
       body: Column(
         children: [
           const OotHero(
@@ -284,85 +296,129 @@ class _PhotoScreenState extends State<PhotoScreen> {
     final photo = _photos[index];
     final comment = _comments[index];
     final picking = _pickingSlot == index;
-    return Semantics(
-      button: true,
-      label: photo == null
-          ? main
-                ? 'Add main photo from gallery'
-                : 'Add photo from gallery'
-          : comment == null
-          ? 'Add an optional comment to this photo'
-          : 'Edit this photo comment',
-      child: GestureDetector(
-        onTap: () =>
-            photo == null ? _selectPhotos(index) : _openCommentEditor(index),
-        child: Container(
-          key: ValueKey('photo-slot-$index'),
-          height: 112.h,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: main ? AppColors.surfaceSelected : Colors.white,
-            borderRadius: BorderRadius.circular(18.r),
-            border: Border.all(
-              color: main ? AppColors.accent : const Color(0xFFDCCEC7),
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Semantics(
+        button: true,
+        label: photo == null
+            ? main
+                  ? 'Add main photo from gallery'
+                  : 'Add photo from gallery'
+            : comment == null
+            ? 'Add an optional comment to this photo'
+            : 'Edit this photo comment',
+        child: GestureDetector(
+          onTap: () =>
+              photo == null ? _selectPhotos(index) : _openCommentEditor(index),
+          child: Container(
+            key: ValueKey('photo-slot-$index'),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: main ? AppColors.surfaceSelected : Colors.white,
+              borderRadius: BorderRadius.circular(18.r),
+              border: Border.all(
+                color: main ? AppColors.accent : const Color(0xFFDCCEC7),
+              ),
             ),
-          ),
-          child: picking
-              ? Center(
-                  child: SizedBox.square(
-                    dimension: 24.w,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              : photo == null
-              ? _EmptyPhotoSlot(main: main)
-              : Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.memory(
-                      photo,
-                      key: ValueKey('photo-image-$index'),
-                      fit: BoxFit.cover,
-                      gaplessPlayback: true,
+            child: picking
+                ? Center(
+                    child: SizedBox.square(
+                      dimension: 24.w,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    if (comment != null)
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          key: ValueKey('photo-comment-$index'),
-                          padding: EdgeInsets.fromLTRB(10.w, 20.h, 10.w, 8.h),
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, Color(0xCC211713)],
+                  )
+                : photo == null
+                ? _EmptyPhotoSlot(main: main)
+                : Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      const ColoredBox(color: AppColors.surfaceMuted),
+                      Image.memory(
+                        photo,
+                        key: ValueKey('photo-image-$index'),
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                      ),
+                      if (comment != null)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            key: ValueKey('photo-comment-$index'),
+                            padding: EdgeInsets.fromLTRB(10.w, 20.h, 10.w, 8.h),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.transparent, Color(0xCC211713)],
+                              ),
+                            ),
+                            child: Text(
+                              comment,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 10.sp,
+                                height: 14 / 10,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            comment,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 10.sp,
-                              height: 14 / 10,
-                              fontWeight: FontWeight.w500,
+                        ),
+                      Positioned(
+                        top: 8.h,
+                        right: 8.w,
+                        child: Semantics(
+                          button: true,
+                          label: 'Replace photo',
+                          child: GestureDetector(
+                            key: ValueKey('replace-photo-$index'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _selectPhotos(index),
+                            child: Container(
+                              width: 28.w,
+                              height: 28.w,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: .58),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.edit_rounded,
+                                size: 15.sp,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    Positioned(
-                      top: 8.h,
-                      right: 8.w,
-                      child: Semantics(
-                        button: true,
-                        label: 'Replace photo',
-                        child: GestureDetector(
-                          key: ValueKey('replace-photo-$index'),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _selectPhotos(index),
+                      if (main)
+                        Positioned(
+                          left: 8.w,
+                          top: 8.h,
+                          child: Container(
+                            height: 24.h,
+                            padding: EdgeInsets.symmetric(horizontal: 10.w),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: .58),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: Text(
+                              'Main photo',
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (comment == null)
+                        Positioned(
+                          right: 8.w,
+                          bottom: 8.h,
                           child: Container(
                             width: 28.w,
                             height: 28.w,
@@ -371,56 +427,15 @@ class _PhotoScreenState extends State<PhotoScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              Icons.edit_rounded,
-                              size: 15.sp,
+                              Icons.chat_bubble_outline_rounded,
+                              size: 14.sp,
                               color: Colors.white,
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    if (main)
-                      Positioned(
-                        left: 8.w,
-                        top: 8.h,
-                        child: Container(
-                          height: 24.h,
-                          padding: EdgeInsets.symmetric(horizontal: 10.w),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: .58),
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: Text(
-                            'Main photo',
-                            style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (comment == null)
-                      Positioned(
-                        right: 8.w,
-                        bottom: 8.h,
-                        child: Container(
-                          width: 28.w,
-                          height: 28.w,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: .58),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            size: 14.sp,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
@@ -482,11 +497,14 @@ class _PhotoCommentSheetState extends State<_PhotoCommentSheet> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(14.r),
-                      child: Image.memory(
-                        widget.photo,
-                        width: 64.w,
-                        height: 64.w,
-                        fit: BoxFit.cover,
+                      child: ColoredBox(
+                        color: AppColors.surfaceMuted,
+                        child: Image.memory(
+                          widget.photo,
+                          width: 64.w,
+                          height: 64.w,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     SizedBox(width: 14.w),

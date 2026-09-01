@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +12,7 @@ import '../widgets/oot_design_system.dart';
 class PhoneNumberScreen extends StatefulWidget {
   const PhoneNumberScreen({super.key, this.onNext});
 
-  final ValueChanged<String>? onNext;
+  final FutureOr<void> Function(String phone)? onNext;
 
   @override
   State<PhoneNumberScreen> createState() => _PhoneNumberScreenState();
@@ -20,6 +22,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
   final TextEditingController _controller = TextEditingController();
   Country _country = Country.parse('KR');
   bool _valid = false;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -47,9 +50,27 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
     );
   }
 
-  void _continue() {
-    final digits = _controller.text.replaceAll(RegExp(r'\D'), '');
-    widget.onNext?.call('+${_country.phoneCode}$digits');
+  Future<void> _continue() async {
+    var digits = _controller.text.replaceAll(RegExp(r'\D'), '');
+    if ((_country.countryCode == 'KR' || _country.countryCode == 'JP') &&
+        digits.startsWith('0')) {
+      digits = digits.substring(1);
+    }
+    final onNext = widget.onNext;
+    if (onNext == null || _submitting) return;
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _submitting = true);
+    try {
+      await onNext('+${_country.phoneCode}$digits');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -58,8 +79,8 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
       progressLabel: 'Your number',
       currentStep: 2,
       totalSteps: 6,
-      buttonLabel: 'Continue',
-      onContinue: _valid ? _continue : null,
+      buttonLabel: _submitting ? 'Sending code...' : 'Continue',
+      onContinue: _valid && !_submitting ? _continue : null,
       body: Column(
         children: [
           const OotHero(

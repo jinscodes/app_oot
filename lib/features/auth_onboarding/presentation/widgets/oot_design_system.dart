@@ -654,6 +654,7 @@ class OotSingleChoiceScreen extends StatefulWidget {
     this.showSelectedBadge = false,
     this.showVisibility = false,
     this.helperText,
+    this.onSelectionChanged,
   });
 
   final String progressLabel;
@@ -671,6 +672,7 @@ class OotSingleChoiceScreen extends StatefulWidget {
   final bool showSelectedBadge;
   final bool showVisibility;
   final String? helperText;
+  final ValueChanged<int>? onSelectionChanged;
 
   @override
   State<OotSingleChoiceScreen> createState() => _OotSingleChoiceScreenState();
@@ -708,7 +710,10 @@ class _OotSingleChoiceScreenState extends State<OotSingleChoiceScreen> {
             OotSelectOption(
               option: widget.options[index],
               selected: _selection == index,
-              onTap: () => setState(() => _selection = index),
+              onTap: () {
+                setState(() => _selection = index);
+                widget.onSelectionChanged?.call(index);
+              },
               height: widget.options[index].caption == null
                   ? widget.optionHeight
                   : math.max(widget.optionHeight, 72),
@@ -787,12 +792,12 @@ class OotStoryIntroScreen extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(24.r),
-            child: SizedBox(
-              width: double.infinity,
-              height: 330.h,
+            child: AspectRatio(
+              aspectRatio: 1,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
+                  const ColoredBox(color: AppColors.surfaceMuted),
                   Image.asset(
                     imageAsset,
                     fit: BoxFit.cover,

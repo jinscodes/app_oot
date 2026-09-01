@@ -6,9 +6,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../widgets/oot_design_system.dart';
 
 class EducationScreen extends StatefulWidget {
-  const EducationScreen({super.key, this.onNext});
+  const EducationScreen({super.key, this.onNext, this.onChanged});
 
   final VoidCallback? onNext;
+  final ValueChanged<Map<String, String>>? onChanged;
 
   @override
   State<EducationScreen> createState() => _EducationScreenState();
@@ -38,7 +39,13 @@ class _EducationScreenState extends State<EducationScreen> {
       currentStep: 3,
       totalSteps: 7,
       buttonLabel: 'Continue',
-      onContinue: widget.onNext,
+      onContinue: () {
+        widget.onChanged?.call({
+          'countryCode': _countryCode,
+          'university': _school.text.trim(),
+        });
+        widget.onNext?.call();
+      },
       body: Column(
         children: [
           const OotHero(

@@ -6,9 +6,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../widgets/oot_design_system.dart';
 
 class LifestyleScreen extends StatefulWidget {
-  const LifestyleScreen({super.key, this.onNext});
+  const LifestyleScreen({super.key, this.onNext, this.onChanged});
 
   final VoidCallback? onNext;
+  final ValueChanged<Map<String, String>>? onChanged;
 
   @override
   State<LifestyleScreen> createState() => _LifestyleScreenState();
@@ -44,7 +45,15 @@ class _LifestyleScreenState extends State<LifestyleScreen> {
             question: 'Do you drink alcohol?',
             selection: _alcohol,
             visible: _showAlcohol,
-            onSelect: (value) => setState(() => _alcohol = value),
+            onSelect: (value) {
+              setState(() => _alcohol = value);
+              widget.onChanged?.call({
+                'alcohol': ['Yes', 'Sometimes', 'No'][value],
+                'smoking': _smoking == null
+                    ? ''
+                    : ['Yes', 'Sometimes', 'No'][_smoking!],
+              });
+            },
             onVisibility: (value) => setState(() => _showAlcohol = value),
           ),
           SizedBox(height: 10.h),
@@ -53,7 +62,15 @@ class _LifestyleScreenState extends State<LifestyleScreen> {
             question: 'Do you smoke tobacco or vape?',
             selection: _smoking,
             visible: _showSmoking,
-            onSelect: (value) => setState(() => _smoking = value),
+            onSelect: (value) {
+              setState(() => _smoking = value);
+              widget.onChanged?.call({
+                'alcohol': _alcohol == null
+                    ? ''
+                    : ['Yes', 'Sometimes', 'No'][_alcohol!],
+                'smoking': ['Yes', 'Sometimes', 'No'][value],
+              });
+            },
             onVisibility: (value) => setState(() => _showSmoking = value),
           ),
         ],

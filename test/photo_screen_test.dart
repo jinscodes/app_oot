@@ -85,6 +85,10 @@ void main() {
 
     expect(find.text('0 / 6'), findsOneWidget);
     expect(find.byKey(const ValueKey('photo-image-0')), findsNothing);
+    final emptySlotSize = tester.getSize(
+      find.byKey(const ValueKey('photo-slot-0')),
+    );
+    expect(emptySlotSize.width, moreOrLessEquals(emptySlotSize.height));
 
     await tester.tap(find.byKey(const ValueKey('photo-slot-0')));
     await tester.pumpAndSettle();
@@ -94,9 +98,18 @@ void main() {
     expect(find.byKey(const ValueKey('photo-image-0')), findsOneWidget);
     expect(find.byKey(const ValueKey('photo-image-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('photo-image-2')), findsOneWidget);
+    expect(
+      tester.widget<Image>(find.byKey(const ValueKey('photo-image-0'))).fit,
+      BoxFit.cover,
+    );
     expect(find.text('Main photo'), findsOneWidget);
     expect(find.text('3 / 6'), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('photo-slot-4')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.byKey(const ValueKey('photo-slot-4')));
     await tester.pumpAndSettle();
 
@@ -107,6 +120,11 @@ void main() {
     }
     expect(find.text('6 / 6'), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('replace-photo-1')),
+      -300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.byKey(const ValueKey('replace-photo-1')));
     await tester.pumpAndSettle();
 

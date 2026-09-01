@@ -7,9 +7,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../widgets/oot_design_system.dart';
 
 class BirthdayScreen extends StatefulWidget {
-  const BirthdayScreen({super.key, this.onNext});
+  const BirthdayScreen({super.key, this.onNext, this.onChanged});
 
   final VoidCallback? onNext;
+  final ValueChanged<DateTime>? onChanged;
 
   @override
   State<BirthdayScreen> createState() => _BirthdayScreenState();
@@ -88,6 +89,7 @@ class _BirthdayScreenState extends State<BirthdayScreen> {
       setState(() => _showConfirmation = true);
       return;
     }
+    widget.onChanged?.call(_birthDate!);
     widget.onNext?.call();
   }
 

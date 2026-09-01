@@ -6,9 +6,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../widgets/oot_design_system.dart';
 
 class HeightScreen extends StatefulWidget {
-  const HeightScreen({super.key, this.onNext});
+  const HeightScreen({super.key, this.onNext, this.onChanged});
 
   final VoidCallback? onNext;
+  final ValueChanged<int>? onChanged;
 
   @override
   State<HeightScreen> createState() => _HeightScreenState();
@@ -76,8 +77,10 @@ class _HeightScreenState extends State<HeightScreen> {
                   itemExtent: 40.h,
                   diameterRatio: 2.1,
                   physics: const FixedExtentScrollPhysics(),
-                  onSelectedItemChanged: (index) =>
-                      setState(() => _selected = _min + index),
+                  onSelectedItemChanged: (index) {
+                    setState(() => _selected = _min + index);
+                    widget.onChanged?.call(_selected);
+                  },
                   childDelegate: ListWheelChildBuilderDelegate(
                     childCount: 81,
                     builder: (context, index) {

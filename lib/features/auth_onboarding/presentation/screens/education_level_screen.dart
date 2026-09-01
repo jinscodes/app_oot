@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import '../widgets/oot_design_system.dart';
 
 class EducationLevelScreen extends StatelessWidget {
-  const EducationLevelScreen({super.key, this.onNext});
+  const EducationLevelScreen({super.key, this.onNext, this.onSelected});
 
   final VoidCallback? onNext;
+  final ValueChanged<String>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +28,14 @@ class EducationLevelScreen extends StatelessWidget {
       compactOptions: true,
       showVisibility: true,
       onContinue: onNext,
+      onSelectionChanged: (index) => onSelected?.call(
+        const [
+          'High school',
+          'College degree',
+          'Graduate degree',
+          'Prefer not to say',
+        ][index],
+      ),
     );
   }
 }

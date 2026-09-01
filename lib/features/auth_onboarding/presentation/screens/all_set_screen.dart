@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,7 +11,7 @@ import '../widgets/oot_design_system.dart';
 class AllSetScreen extends StatefulWidget {
   const AllSetScreen({super.key, this.onStartExploring});
 
-  final VoidCallback? onStartExploring;
+  final FutureOr<void> Function()? onStartExploring;
 
   @override
   State<AllSetScreen> createState() => _AllSetScreenState();

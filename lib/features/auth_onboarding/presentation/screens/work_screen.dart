@@ -6,9 +6,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../widgets/oot_design_system.dart';
 
 class WorkScreen extends StatefulWidget {
-  const WorkScreen({super.key, this.onNext});
+  const WorkScreen({super.key, this.onNext, this.onChanged});
 
   final VoidCallback? onNext;
+  final ValueChanged<Map<String, String>>? onChanged;
 
   @override
   State<WorkScreen> createState() => _WorkScreenState();
@@ -33,7 +34,13 @@ class _WorkScreenState extends State<WorkScreen> {
       currentStep: 5,
       totalSteps: 7,
       buttonLabel: 'Continue',
-      onContinue: widget.onNext,
+      onContinue: () {
+        widget.onChanged?.call({
+          'company': _company.text.trim(),
+          'jobTitle': _role.text.trim(),
+        });
+        widget.onNext?.call();
+      },
       body: Column(
         children: [
           const OotHero(

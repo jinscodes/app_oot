@@ -6,6 +6,11 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your location is used to show nearby address suggestions while you search.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Your photo library is used to choose photos for your dating profile.</string>
 	<key>CFBundleDevelopmentRegion</key>

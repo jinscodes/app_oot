@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import '../widgets/oot_design_system.dart';
 
 class ChildrenScreen extends StatelessWidget {
-  const ChildrenScreen({super.key, this.onNext});
+  const ChildrenScreen({super.key, this.onNext, this.onSelected});
 
   final VoidCallback? onNext;
+  final ValueChanged<String>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +28,13 @@ class ChildrenScreen extends StatelessWidget {
       ],
       showVisibility: true,
       onContinue: onNext,
+      onSelectionChanged: (index) => onSelected?.call(
+        const [
+          'I don’t have children',
+          'I have children',
+          'Prefer not to say',
+        ][index],
+      ),
     );
   }
 }

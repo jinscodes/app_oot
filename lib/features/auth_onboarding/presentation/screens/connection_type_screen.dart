@@ -4,9 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/oot_design_system.dart';
 
 class ConnectionTypeScreen extends StatefulWidget {
-  const ConnectionTypeScreen({super.key, this.onNext});
+  const ConnectionTypeScreen({super.key, this.onNext, this.onSelected});
 
   final VoidCallback? onNext;
+  final ValueChanged<String>? onSelected;
 
   @override
   State<ConnectionTypeScreen> createState() => _ConnectionTypeScreenState();
@@ -45,7 +46,10 @@ class _ConnectionTypeScreenState extends State<ConnectionTypeScreen> {
             OotSelectOption(
               option: _options[index],
               selected: _selected == index,
-              onTap: () => setState(() => _selected = index),
+              onTap: () {
+                setState(() => _selected = index);
+                widget.onSelected?.call(_options[index].label);
+              },
               height: 42,
               compact: true,
             ),
